@@ -4,6 +4,16 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Send, Download, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +42,8 @@ import {
 import { fetchLibraryManifest, resolveLibraryFiles } from "@/lib/library-client"
 import { buildPlaintextForModel } from "@/lib/preview-plaintext"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
+import { DEFAULT_LLM_MODEL_ID, LLM_MODEL_GROUPS } from "@/lib/llm-models"
+import { getStoredLlmModelId, setStoredLlmModelId } from "@/lib/selected-llm-model"
 import { getSelectedFileIds } from "@/lib/selected-files"
 
 export function ChatPanel() {
@@ -43,6 +55,11 @@ export function ChatPanel() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [modelId, setModelId] = useState(DEFAULT_LLM_MODEL_ID)
+
+  useEffect(() => {
+    setModelId(getStoredLlmModelId())
+  }, [])
 
   const persistSession = useCallback((chatId: string, nextMessages: ChatMessageModel[]) => {
     const all = loadSessions()
@@ -132,6 +149,7 @@ export function ChatPanel() {
         body: JSON.stringify({
           messages: historyForApi,
           files: filesPayload,
+          model: modelId,
         }),
       })
 
@@ -220,17 +238,45 @@ export function ChatPanel() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex shrink-0 items-center justify-between border-b px-6 py-4">
-        <div>
-          <h1 className="text-xl font-semibold">Chat</h1>
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b px-6 py-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold">Chat</h1>
+            {c && (
+              <p className="text-xs text-muted-foreground">
+                Session <code className="rounded bg-muted px-1">{c.slice(0, 8)}…</code>
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Label htmlFor="llm-model" className="text-xs text-muted-foreground whitespace-nowrap">
+              Model
+            </Label>
+            <Select
+              value={modelId}
+              onValueChange={(v) => {
+                setModelId(v)
+                setStoredLlmModelId(v)
+              }}
+            >
+              <SelectTrigger id="llm-model" size="sm" className="h-8 w-[min(14rem,calc(100vw-8rem))] min-w-[10rem]">
+                <SelectValue placeholder="Model" />
+              </SelectTrigger>
+              <SelectContent align="end" className="max-h-[min(24rem,70vh)]">
+                {LLM_MODEL_GROUPS.map((group) => (
+                  <SelectGroup key={group.vendor}>
+                    <SelectLabel>{group.vendor}</SelectLabel>
+                    {group.models.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {c && (
-            <p className="text-xs text-muted-foreground">
-              Session <code className="rounded bg-muted px-1">{c.slice(0, 8)}…</code>
-            </p>
-          )}
-        </div>
-        {c && (
-          <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
             {messages.length > 0 && (
               <>
                 <Button variant="outline" size="sm" onClick={exportHistory}>
@@ -272,9 +318,9 @@ export function ChatPanel() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
-        )}
-      </header>
+            </div>
+          )}
+        </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto max-w-3xl">

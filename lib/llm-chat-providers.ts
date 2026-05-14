@@ -1,0 +1,115 @@
+import Anthropic from "@anthropic-ai/sdk"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+import OpenAI from "openai"
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
+
+const DOC_SYSTEM_PREAMBLE =
+  "The user selected the following documents from their library. Their full text appears below each document header. Use this material as primary evidence when the user asks about it; quote or paraphrase specifics when helpful. If a question does not require the documents, answer from general knowledge without inventing document contents.\n\n"
+
+export type ChatTurn = { role: "user" | "assistant"; content: string }
+
+export function buildSystemFromFiles(files: { plaintext: string }[]): string | undefined {
+  if (!Array.isArray(files) || files.length === 0) return undefined
+  const docBlock = files
+    .filter((f) => typeof f?.plaintext === "string" && f.plaintext.trim().length > 0)
+    .map((f) => f.plaintext)
+    .join("\n\n---\n\n")
+  if (!docBlock.trim()) return undefined
+  return DOC_SYSTEM_PREAMBLE + docBlock
+}
+
+export function turnsFromClientMessages(
+  messages: { role: string; content: string }[]
+): ChatTurn[] {
+  const turns: ChatTurn[] = []
+  for (const m of messages) {
+    if (m.role !== "user" && m.role !== "assistant") continue
+    if (typeof m.content !== "string") continue
+    turns.push({ role: m.role, content: m.content })
+  }
+  return turns
+}
+
+export async function completeOpenAI(
+  apiKey: string,
+  model: string,
+  system: string | undefined,
+  turns: ChatTurn[]
+): Promise<string> {
+  const apiMessages: ChatCompletionMessageParam[] = []
+  if (system) {
+    apiMessages.push({ role: "system", content: system })
+  }
+  for (const t of turns) {
+    apiMessages.push({ role: t.role, content: t.content })
+  }
+  const openai = new OpenAI({ apiKey })
+  const completion = await openai.chat.completions.create({
+    model,
+    messages: apiMessages,
+  })
+  const choice = completion.choices[0]?.message
+  const text =
+    (typeof choice?.content === "string" ? choice.content : null)?.trim() ||
+    "The model returned an empty reply."
+  return text
+}
+
+export async function completeAnthropic(
+  apiKey: string,
+  model: string,
+  system: string | undefined,
+  turns: ChatTurn[]
+): Promise<string> {
+  const client = new Anthropic({ apiKey })
+  const res = await client.messages.create({
+    model,
+    max_tokens: 16384,
+    system: system ?? undefined,
+    messages: turns.map((t) => ({
+      role: t.role,
+      content: t.content,
+    })),
+  })
+  const parts = res.content
+  let text = ""
+  for (const block of parts) {
+    if (block.type === "text") {
+      text += (block as { type: "text"; text: string }).text
+    }
+  }
+  text = text.trim()
+  return text || "The model returned an empty reply."
+}
+
+export async function completeGemini(
+  apiKey: string,
+  modelId: string,
+  system: string | undefined,
+  turns: ChatTurn[]
+): Promise<string> {
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const model = genAI.getGenerativeModel({
+    model: modelId,
+    systemInstruction: system,
+  })
+
+  if (turns.length === 0) {
+    throw new Error("No messages")
+  }
+
+  const last = turns[turns.length - 1]!
+  if (last.role !== "user") {
+    throw new Error("Last message must be from the user")
+  }
+
+  const history = turns.slice(0, -1).map((t) => ({
+    role: t.role === "user" ? ("user" as const) : ("model" as const),
+    parts: [{ text: t.content }],
+  }))
+
+  const chat = model.startChat({ history })
+  const result = await chat.sendMessage(last.content)
+  const text = result.response.text()?.trim() || "The model returned an empty reply."
+  return text
+}

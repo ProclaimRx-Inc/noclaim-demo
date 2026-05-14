@@ -1,14 +1,26 @@
-import OpenAI, { APIError } from "openai"
+import { APIError } from "openai"
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
+import { isLikelyContextLimitMessage } from "@/lib/is-context-limit-message"
+import {
+  buildSystemFromFiles,
+  completeAnthropic,
+  completeGemini,
+  completeOpenAI,
+  turnsFromClientMessages,
+} from "@/lib/llm-chat-providers"
+import { DEFAULT_LLM_MODEL_ID, isAllowedModelId, providerForModel } from "@/lib/llm-models"
 import { isContextWindowExceeded } from "@/lib/openai-context-server"
-
-const DEFAULT_MODEL = "gpt-5.4-mini"
 
 type ClientMessage = { role: string; content: string }
 type ClientFile = { name: string; plaintext: string }
+
+function contextLimitHit(err: unknown): boolean {
+  if (err instanceof APIError && isContextWindowExceeded(err)) return true
+  if (err instanceof Error && isLikelyContextLimitMessage(err.message)) return true
+  return false
+}
 
 export async function POST(request: Request) {
   const { userId } = await auth()
@@ -16,20 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    return NextResponse.json(
-      {
-        error:
-          "Missing OPENAI_API_KEY. In Vercel: Project → Settings → Environment Variables → add OPENAI_API_KEY for Production and Preview, then redeploy.",
-      },
-      { status: 503 }
-    )
-  }
-
-  const model = process.env.OPENAI_MODEL?.trim() || DEFAULT_MODEL
-
-  let body: { messages?: ClientMessage[]; files?: ClientFile[] }
+  let body: { messages?: ClientMessage[]; files?: ClientFile[]; model?: string }
   try {
     body = await request.json()
   } catch {
@@ -41,49 +40,66 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "messages array is required" }, { status: 400 })
   }
 
-  const apiMessages: ChatCompletionMessageParam[] = []
-
-  if (Array.isArray(files) && files.length > 0) {
-    const docBlock = files
-      .filter((f) => typeof f?.plaintext === "string" && f.plaintext.trim().length > 0)
-      .map((f) => f.plaintext)
-      .join("\n\n---\n\n")
-    if (docBlock) {
-      apiMessages.push({
-        role: "system",
-        content:
-          "The user selected the following documents from their library. Their full text appears below each document header. Use this material as primary evidence when the user asks about it; quote or paraphrase specifics when helpful. If a question does not require the documents, answer from general knowledge without inventing document contents.\n\n" +
-          docBlock,
-      })
-    }
+  const modelId =
+    typeof body.model === "string" && isAllowedModelId(body.model) ? body.model : DEFAULT_LLM_MODEL_ID
+  const provider = providerForModel(modelId)
+  if (!provider) {
+    return NextResponse.json({ error: "Invalid model" }, { status: 400 })
   }
 
-  for (const m of messages) {
-    if (m.role !== "user" && m.role !== "assistant") continue
-    if (typeof m.content !== "string") continue
-    apiMessages.push({ role: m.role, content: m.content })
+  const openaiKey = process.env.OPENAI_API_KEY?.trim()
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim()
+  const geminiKey =
+    process.env.GEMINI_API_KEY?.trim() ||
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
+    process.env.GOOGLE_API_KEY?.trim()
+
+  if (provider === "openai" && !openaiKey) {
+    return NextResponse.json(
+      {
+        error:
+          "Missing OPENAI_API_KEY. Add it under Vercel → Project → Settings → Environment Variables, then redeploy.",
+      },
+      { status: 503 }
+    )
+  }
+  if (provider === "anthropic" && !anthropicKey) {
+    return NextResponse.json(
+      {
+        error:
+          "Missing ANTHROPIC_API_KEY. Add it under Vercel → Project → Settings → Environment Variables, then redeploy.",
+      },
+      { status: 503 }
+    )
+  }
+  if (provider === "gemini" && !geminiKey) {
+    return NextResponse.json(
+      {
+        error:
+          "Missing Gemini API key. Set GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY in Vercel env, then redeploy.",
+      },
+      { status: 503 }
+    )
   }
 
-  if (apiMessages.length === 0) {
+  const system = buildSystemFromFiles(Array.isArray(files) ? files : [])
+  const turns = turnsFromClientMessages(messages)
+  if (turns.length === 0) {
     return NextResponse.json({ error: "No valid messages" }, { status: 400 })
   }
 
-  const openai = new OpenAI({ apiKey })
-
   try {
-    const completion = await openai.chat.completions.create({
-      model,
-      messages: apiMessages,
-    })
-
-    const choice = completion.choices[0]?.message
-    const text =
-      (typeof choice?.content === "string" ? choice.content : null)?.trim() ||
-      "The model returned an empty reply."
-
+    let text: string
+    if (provider === "openai") {
+      text = await completeOpenAI(openaiKey!, modelId, system, turns)
+    } else if (provider === "anthropic") {
+      text = await completeAnthropic(anthropicKey!, modelId, system, turns)
+    } else {
+      text = await completeGemini(geminiKey!, modelId, system, turns)
+    }
     return NextResponse.json({ response: text })
   } catch (err: unknown) {
-    if (isContextWindowExceeded(err)) {
+    if (contextLimitHit(err)) {
       return NextResponse.json(
         {
           error: CONTEXT_WINDOW_USER_MESSAGE,
@@ -92,7 +108,7 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    const msg = err instanceof APIError ? err.message : err instanceof Error ? err.message : "OpenAI request failed"
+    const msg = err instanceof Error ? err.message : "Request failed"
     return NextResponse.json({ error: msg }, { status: 502 })
   }
 }
