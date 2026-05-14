@@ -18,7 +18,7 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 
 ## Library files (repo-managed)
 
-1. Add UTF-8 text files under `public/library/` (you can use subfolders).
+1. Add UTF-8 text files under `public/library/` (commonly `.csv`; any plain text is fine).
 2. Edit `public/library/manifest.json` — an array of entries:
 
 ```json
@@ -26,7 +26,7 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
   {
     "id": "unique-stable-id",
     "name": "Human title",
-    "path": "relative/path/from/library/root.txt"
+    "path": "relative/path/from/library/root.csv"
   }
 ]
 ```
@@ -36,28 +36,28 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 
 ### Parquet → text (for dimensions / extracts)
 
-Raw `.parquet` files under `public/library/` are **gitignored** (they can be large). Convert to UTF-8 TSV text and commit the `.txt` plus a `manifest.json` entry:
+Raw `.parquet` files under `public/library/` are **gitignored** (they can be large). Convert to UTF-8 CSV and commit the `.csv` plus a `manifest.json` entry:
 
 ```bash
 python3 -m venv .venv-parquet && . .venv-parquet/bin/activate && pip install pyarrow
-python scripts/parquet_to_tsv.py public/library/your_file.parquet public/library/your_file.txt
+python scripts/parquet_to_csv.py public/library/your_file.parquet public/library/your_file.csv
 ```
 
 ### Library size (demo tradeoffs)
 
-Shipping **very large** `.txt` files in `public/` works for an internal demo, but a few caveats:
+Shipping **very large** library files in `public/` works for an internal demo, but a few caveats:
 
 - **Browser + model context**: the app loads selected files in the client and sends their full text with each chat request. Huge files mean slow loads, big payloads, and easy **context overflow** (cost + truncation).
 - **Git + deploy size**: large blobs bloat the repo and every Vercel build unless you use **Git LFS** or host files elsewhere.
 
 **Low-hanging fruit** if this grows:
 
-1. **Pre-summarize or slice** data before `.txt` (e.g. top N rows, or one file per topic).
+1. **Pre-summarize or slice** data before export (e.g. top N rows, or one file per topic).
 2. **Smarter selection**: only attach files the user explicitly checks (already the case); add a visible **character / token estimate** in the Library preview later.
 3. **Move blobs to object storage** (Vercel Blob, S3) with signed URLs and server-side fetch + trim — more moving parts, but better than multi‑MB `public/` for production-shaped demos.
 4. **Server-side retrieval** in `/api/chat`: accept file ids, load and cap text on the server (single round trip, easier to enforce limits).
 
-For now, keeping **small–medium** derived `.txt` files in `public/library/` is the simplest path.
+For now, keeping **small–medium** derived files (e.g. `.csv`) in `public/library/` is the simplest path.
 
 ## Environment variables
 
