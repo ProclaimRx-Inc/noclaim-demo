@@ -34,6 +34,10 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 3. Deploy (e.g. push to Vercel). The manifest is loaded when you open **Chat** (hard refresh the page after a deploy if the list looks stale).
 4. On **Chat**, use the right panel to check files, **Select all** / **Unselect all**, and **Preview** (raw text in a monospace block). The API still receives the raw file text in a document block. If the model rejects the request for **context length**, the chat shows a clear **context window limit** message.
 
+### System prompts (`content/system-prompts/`)
+
+For each allowlisted model id (see `ALLOWED_LLM_MODEL_IDS` in `lib/llm-models.ts`), add or edit `content/system-prompts/<model-id>.txt`. That text is sent first in the API **system** message (before the app’s markdown hint and any checked library files). Files can start empty: the server substitutes a short generic assistant preamble until you paste your own instructions (for example, text aligned with how major chat products steer tone and safety).
+
 ### Parquet → text (for dimensions / extracts)
 
 Raw `.parquet` files under `public/library/` are **gitignored** (they can be large). Convert to UTF-8 CSV and commit the `.csv` plus a `manifest.json` entry:

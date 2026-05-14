@@ -21,9 +21,20 @@ export function buildSystemFromFiles(files: { plaintext: string }[]): string | u
 const ASSISTANT_MARKDOWN_HINT =
   "When you reply to the user, you may use GitHub-flavored Markdown (headings, bullet or numbered lists, links, inline code, fenced code blocks, and tables) when it improves readability. The chat UI renders Markdown in assistant messages."
 
-export function buildChatSystem(files: { plaintext: string }[]): string {
+const DEFAULT_MODEL_BASE =
+  "You are a helpful assistant. Be clear, accurate, and concise. If you are unsure, say so rather than guessing."
+
+/**
+ * Full system string for the API: optional per-model base (from repo text file), UI markdown hint,
+ * then optional library document block.
+ */
+export function composeChatSystem(modelBaseFromFile: string, files: { plaintext: string }[]): string {
+  const trimmed = modelBaseFromFile.trim()
+  const base = trimmed.length > 0 ? trimmed : DEFAULT_MODEL_BASE
   const doc = buildSystemFromFiles(files)
-  return doc ? `${ASSISTANT_MARKDOWN_HINT}\n\n${doc}` : ASSISTANT_MARKDOWN_HINT
+  const parts = [base, ASSISTANT_MARKDOWN_HINT]
+  if (doc) parts.push(doc)
+  return parts.join("\n\n")
 }
 
 export function turnsFromClientMessages(

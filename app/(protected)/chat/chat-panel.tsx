@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Send, Download, Trash2 } from "lucide-react"
+import { Send, Download, Trash2, ScrollText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -24,6 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
 import { ChatLibraryPanel } from "@/components/chat-library-panel"
@@ -55,6 +62,10 @@ export function ChatPanel() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [systemPromptOpen, setSystemPromptOpen] = useState(false)
+  const [systemPromptText, setSystemPromptText] = useState("")
+  const [systemPromptLoading, setSystemPromptLoading] = useState(false)
+  const [systemPromptError, setSystemPromptError] = useState<string | null>(null)
   const [modelId, setModelId] = useState(DEFAULT_LLM_MODEL_ID)
 
   useEffect(() => {
@@ -212,6 +223,40 @@ export function ChatPanel() {
     setMessages([])
   }
 
+  const openSystemPromptPreview = async () => {
+    setSystemPromptOpen(true)
+    setSystemPromptLoading(true)
+    setSystemPromptError(null)
+    setSystemPromptText("")
+    try {
+      const selectedIds = getSelectedFileIds()
+      const manifest = await fetchLibraryManifest()
+      const resolved = await resolveLibraryFiles(selectedIds, manifest)
+      const filesPayload =
+        resolved.length > 0
+          ? resolved.map((f) => ({
+              name: f.name,
+              plaintext: buildPlaintextForModel(f),
+            }))
+          : undefined
+      const response = await fetch("/api/chat/system-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelId, files: filesPayload }),
+      })
+      const data = (await response.json()) as { system?: string; error?: string }
+      if (!response.ok) {
+        setSystemPromptError(data.error ?? `Request failed (${response.status})`)
+        return
+      }
+      setSystemPromptText(typeof data.system === "string" ? data.system : "")
+    } catch {
+      setSystemPromptError("Could not load system prompt preview.")
+    } finally {
+      setSystemPromptLoading(false)
+    }
+  }
+
   const exportHistory = () => {
     if (!c) return
     const all = loadSessions()
@@ -274,6 +319,17 @@ export function ChatPanel() {
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 shrink-0 gap-1 px-2"
+              title="Preview the full system string for the selected model and library files"
+              onClick={() => void openSystemPromptPreview()}
+            >
+              <ScrollText className="h-4 w-4" />
+              <span className="hidden sm:inline">System prompt</span>
+            </Button>
           </div>
           {c && (
             <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
@@ -321,6 +377,30 @@ export function ChatPanel() {
             </div>
           )}
         </header>
+
+        <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
+          <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">
+            <DialogHeader className="shrink-0 border-b pb-4 text-left">
+              <DialogTitle>System prompt (debug)</DialogTitle>
+              <DialogDescription className="text-left">
+                Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
+                <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
+                {systemPromptLoading ? " — loading…" : ""}, including the markdown hint and any checked library files.
+                Per-model text lives under <code className="rounded bg-muted px-0.5 text-xs">content/system-prompts/</code>
+                .
+              </DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto py-3">
+              {systemPromptError ? (
+                <p className="text-sm text-destructive">{systemPromptError}</p>
+              ) : (
+                <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
+                  {systemPromptLoading ? "…" : systemPromptText}
+                </pre>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto max-w-3xl">

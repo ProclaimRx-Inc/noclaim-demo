@@ -4,13 +4,14 @@ import { NextResponse } from "next/server"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { isLikelyContextLimitMessage } from "@/lib/is-context-limit-message"
 import {
-  buildChatSystem,
+  composeChatSystem,
   completeAnthropic,
   completeGemini,
   completeOpenAI,
   turnsFromClientMessages,
 } from "@/lib/llm-chat-providers"
 import { DEFAULT_LLM_MODEL_ID, isAllowedModelId, providerForModel } from "@/lib/llm-models"
+import { readModelSystemPromptBase } from "@/lib/model-system-prompt-server"
 import { isContextWindowExceeded } from "@/lib/openai-context-server"
 
 type ClientMessage = { role: string; content: string }
@@ -82,7 +83,8 @@ export async function POST(request: Request) {
     )
   }
 
-  const system = buildChatSystem(Array.isArray(files) ? files : [])
+  const modelBase = readModelSystemPromptBase(modelId)
+  const system = composeChatSystem(modelBase, Array.isArray(files) ? files : [])
   const turns = turnsFromClientMessages(messages)
   if (turns.length === 0) {
     return NextResponse.json({ error: "No valid messages" }, { status: 400 })
