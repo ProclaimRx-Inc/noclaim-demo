@@ -2,16 +2,28 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Send, Download } from "lucide-react"
+import { Send, Download, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatMessage } from "@/components/chat-message"
 import type { ChatMessage as ChatMessageModel } from "@/lib/types"
 import {
   createEmptySession,
+  deleteSession,
   getActiveChatId,
   loadSessions,
+  navigateAfterChatDeleted,
   saveSessions,
   setActiveChatId,
   titleFromMessages,
@@ -29,6 +41,7 @@ export function ChatPanel() {
   const [messages, setMessages] = useState<ChatMessageModel[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const persistSession = useCallback((chatId: string, nextMessages: ChatMessageModel[]) => {
     const all = loadSessions()
@@ -154,6 +167,15 @@ export function ChatPanel() {
     persistSession(c, [])
   }
 
+  const deleteThisChat = () => {
+    if (!c) return
+    const id = c
+    setDeleteOpen(false)
+    deleteSession(id)
+    navigateAfterChatDeleted(id, id, router)
+    setMessages([])
+  }
+
   const exportHistory = () => {
     if (!c) return
     const all = loadSessions()
@@ -188,15 +210,49 @@ export function ChatPanel() {
             </p>
           )}
         </div>
-        {messages.length > 0 && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={exportHistory}>
-              <Download className="mr-2 h-4 w-4" />
-              Export
+        {c && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {messages.length > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={exportHistory}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+                <Button variant="outline" size="sm" onClick={clearHistory}>
+                  Clear session
+                </Button>
+              </>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete chat
             </Button>
-            <Button variant="outline" size="sm" onClick={clearHistory}>
-              Clear session
-            </Button>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This conversation will be removed from this browser. Export first if you need a copy. This cannot
+                    be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={deleteThisChat}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
       </header>

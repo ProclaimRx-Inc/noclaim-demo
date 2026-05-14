@@ -96,3 +96,43 @@ export function upsertSession(sessions: ChatSession[], session: ChatSession): Ch
   next[i] = session
   return next
 }
+
+/** Removes one session from storage. If it was the active session, points active at the newest remaining session or clears active if none left. */
+export function deleteSession(sessionId: string): ChatSession[] {
+  const all = loadSessions()
+  const remaining = all.filter((s) => s.id !== sessionId)
+  saveSessions(remaining)
+
+  const wasActive = getActiveChatId() === sessionId
+  if (wasActive) {
+    if (remaining.length > 0) {
+      const sorted = [...remaining].sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+      setActiveChatId(sorted[0]!.id)
+    } else {
+      localStorage.removeItem(ACTIVE_CHAT_KEY)
+    }
+  }
+  return remaining
+}
+
+/**
+ * After `deleteSession`, if the deleted chat was the one open in the URL (`?c=`), move the user to another session or create a new empty one.
+ */
+export function navigateAfterChatDeleted(
+  deletedId: string,
+  urlChatId: string | null,
+  router: { replace: (href: string) => void }
+): void {
+  if (!urlChatId || urlChatId !== deletedId) return
+  const nextId = getActiveChatId()
+  if (nextId) {
+    router.replace(`/chat?c=${nextId}`)
+    return
+  }
+  const neu = createEmptySession()
+  saveSessions([neu])
+  setActiveChatId(neu.id)
+  router.replace(`/chat?c=${neu.id}`)
+}
