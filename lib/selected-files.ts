@@ -22,3 +22,12 @@ export function toggleSelectedFileId(id: string): string[] {
   setSelectedFileIds(next)
   return next
 }
+
+/** Select every library entry id (deduped). */
+export function selectAllFileIds(ids: string[]): void {
+  setSelectedFileIds([...new Set(ids)])
+}
+
+export function clearSelectedFileIds(): void {
+  setSelectedFileIds([])
+}

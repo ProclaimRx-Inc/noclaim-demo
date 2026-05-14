@@ -8,7 +8,3 @@ Path: ${file.path}
 ${file.content}
 --- END CONTENT ---`
 }
-
-export function buildPlaintextPreview(file: LibraryFileResolved): string {
-  return buildPlaintextForModel(file)
-}

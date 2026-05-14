@@ -15,8 +15,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatMessage } from "@/components/chat-message"
+import { ChatLibraryPanel } from "@/components/chat-library-panel"
 import type { ChatMessage as ChatMessageModel } from "@/lib/types"
 import {
   createEmptySession,
@@ -31,6 +31,7 @@ import {
 } from "@/lib/chat-sessions"
 import { fetchLibraryManifest, resolveLibraryFiles } from "@/lib/library-client"
 import { buildPlaintextForModel } from "@/lib/preview-plaintext"
+import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { getSelectedFileIds } from "@/lib/selected-files"
 
 export function ChatPanel() {
@@ -134,14 +135,31 @@ export function ChatPanel() {
         }),
       })
 
-      const data = (await response.json()) as { response?: string; error?: string }
+      let data: {
+        response?: string
+        error?: string
+        contextWindowExceeded?: boolean
+      } = {}
+      try {
+        data = (await response.json()) as typeof data
+      } catch {
+        /* non-JSON body */
+      }
+
+      let assistantText: string
+      if (data.contextWindowExceeded) {
+        assistantText = data.error ?? CONTEXT_WINDOW_USER_MESSAGE
+      } else if (!response.ok) {
+        assistantText = data.error ? `Error: ${data.error}` : `Request failed (${response.status}).`
+      } else {
+        assistantText =
+          data.response || (data.error ? `Error: ${data.error}` : "Sorry, I could not process your request.")
+      }
 
       const assistantMessage: ChatMessageModel = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content:
-          data.response ||
-          (data.error ? `Error: ${data.error}` : "Sorry, I could not process your request."),
+        content: assistantText,
       }
 
       const finalMsgs = [...nextAfterUser, assistantMessage]
@@ -200,8 +218,9 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b px-6 py-4">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center justify-between border-b px-6 py-4">
         <div>
           <h1 className="text-xl font-semibold">Chat</h1>
           {c && (
@@ -257,35 +276,35 @@ export function ChatPanel() {
         )}
       </header>
 
-      <ScrollArea className="flex-1 px-6">
-        <div className="mx-auto max-w-3xl py-6">
-          {messages.length === 0 ? (
-            <div className="flex h-[60vh] flex-col items-center justify-center text-center">
-              <div className="rounded-full bg-muted p-4">
-                <Send className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h2 className="mt-4 text-lg font-medium">Start a conversation</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Send a message to begin. Select library files on the Library page to attach their text to each request.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
-              ))}
-              {isLoading && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
-                  <span className="text-sm">Thinking...</span>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+          <div className="mx-auto max-w-3xl">
+            {messages.length === 0 ? (
+              <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+                <div className="rounded-full bg-muted p-4">
+                  <Send className="h-8 w-8 text-muted-foreground" />
                 </div>
-              )}
-            </div>
-          )}
+                <h2 className="mt-4 text-lg font-medium">Start a conversation</h2>
+                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                  Send a message to begin. Use the library on the right to include files with each request.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {messages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                {isLoading && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
+                    <span className="text-sm">Thinking...</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </ScrollArea>
 
-      <div className="border-t px-6 py-4">
+        <div className="shrink-0 border-t px-6 py-4">
         <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
           <div className="flex gap-2">
             <Textarea
@@ -305,7 +324,10 @@ export function ChatPanel() {
             </Button>
           </div>
         </form>
+        </div>
       </div>
+
+      <ChatLibraryPanel />
     </div>
   )
 }

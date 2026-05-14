@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageSquare, FileText, LogOut } from "lucide-react"
+import { MessageSquare, LogOut } from "lucide-react"
 import { ChatSessionsSidebar } from "@/components/chat-sessions-sidebar"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -20,10 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-const navigation = [
-  { name: "Chat", href: "/chat", icon: MessageSquare },
-  { name: "Library", href: "/files", icon: FileText },
-]
+const navigation = [{ name: "Chat", href: "/chat", icon: MessageSquare }]
 
 export function AppSidebar() {
   const pathname = usePathname()

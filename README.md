@@ -13,7 +13,7 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 - User signs in with Clerk; all routes except sign-in are protected.
 - User can maintain **multiple chat sessions** (sidebar: **New chat** + list). Active session is reflected in the URL as `/chat?c=<sessionId>`.
 - User sends messages; the app calls **`POST /api/chat`** (server-side OpenAI). Responses are **plain text** (no streaming, no markdown renderer, no tools/agents).
-- Optional **library** files selected on the Library page are read in the browser and their plaintext (same shape as the preview dialog) is sent with each request for model context.
+- Optional **library** files selected in the **chat** right-hand panel are read in the browser and their raw text (same as the API document block) is sent with each request for model context.
 - **Export** downloads the **current session** as JSON (`id`, `title`, `updatedAt`, `messages`) for debugging or extraction.
 
 ## Library files (repo-managed)
@@ -31,8 +31,8 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 ]
 ```
 
-3. Deploy (e.g. push to Vercel). In the app, open **Library** and use **Refresh list** if you already had the page open.
-4. Use the checkboxes to choose which files are **included in the next chat** requests. **Preview** shows the exact document block used for the model (the API also prepends a short system instruction before those blocks).
+3. Deploy (e.g. push to Vercel). The manifest is loaded when you open **Chat** (hard refresh the page after a deploy if the list looks stale).
+4. On **Chat**, use the right panel to check files, **Select all** / **Unselect all**, and **Preview** (CSV files show as a markdown heading + table). The API still receives the raw file text in a document block. If the model rejects the request for **context length**, the chat shows a clear **context window limit** message.
 
 ### Parquet → text (for dimensions / extracts)
 
@@ -53,7 +53,7 @@ Shipping **very large** library files in `public/` works for an internal demo, b
 **Low-hanging fruit** if this grows:
 
 1. **Pre-summarize or slice** data before export (e.g. top N rows, or one file per topic).
-2. **Smarter selection**: only attach files the user explicitly checks (already the case); add a visible **character / token estimate** in the Library preview later.
+2. **Smarter selection**: only attach files the user explicitly checks (already the case); add a visible **character / token estimate** in the preview later.
 3. **Move blobs to object storage** (Vercel Blob, S3) with signed URLs and server-side fetch + trim — more moving parts, but better than multi‑MB `public/` for production-shaped demos.
 4. **Server-side retrieval** in `/api/chat`: accept file ids, load and cap text on the server (single round trip, easier to enforce limits).
 
@@ -88,7 +88,7 @@ npm run dev
 Resolved in this repo where applicable:
 
 1. Light/dark toggle works (`ThemeToggle`).
-2. No attach-from-chat control; library is managed on the **Library** page.
+2. No attach-from-chat control; the **library lives in the chat** right panel (`/files` redirects to `/chat`).
 3. Sign out uses Clerk `signOut` with redirect to `/sign-in`.
 4. Vercel Speed Insights (and Analytics in production) are wired in `app/layout.tsx`.
 5. Chat **Export** exports the current session JSON.

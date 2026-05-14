@@ -1,7 +1,9 @@
-import OpenAI from "openai"
+import OpenAI, { APIError } from "openai"
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
+import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
+import { isContextWindowExceeded } from "@/lib/openai-context-server"
 
 const DEFAULT_MODEL = "gpt-5.4-mini"
 
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
       apiMessages.push({
         role: "system",
         content:
-          "The user selected the following documents from their library. Use them as context when relevant. If the question does not depend on them, answer normally.\n\n" +
+          "The user selected the following documents from their library. Their full text appears below each document header. Use this material as primary evidence when the user asks about it; quote or paraphrase specifics when helpful. If a question does not require the documents, answer from general knowledge without inventing document contents.\n\n" +
           docBlock,
       })
     }
@@ -81,7 +83,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ response: text })
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "OpenAI request failed"
+    if (isContextWindowExceeded(err)) {
+      return NextResponse.json(
+        {
+          error: CONTEXT_WINDOW_USER_MESSAGE,
+          contextWindowExceeded: true,
+        },
+        { status: 400 }
+      )
+    }
+    const msg = err instanceof APIError ? err.message : err instanceof Error ? err.message : "OpenAI request failed"
     return NextResponse.json({ error: msg }, { status: 502 })
   }
 }
