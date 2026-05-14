@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Send } from "lucide-react"
+import { Send, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileSelector } from "@/components/file-selector"
 import { ChatMessage } from "@/components/chat-message"
 
 interface Message {
@@ -15,17 +14,9 @@ interface Message {
   files?: string[]
 }
 
-interface FileItem {
-  id: string
-  name: string
-  type: string
-  url: string
-}
-
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
-  const [selectedFiles, setSelectedFiles] = useState<FileItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -48,18 +39,16 @@ export default function ChatPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() && selectedFiles.length === 0) return
+    if (!input.trim()) return
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: "user",
       content: input,
-      files: selectedFiles.map((f) => f.name),
     }
 
     setMessages((prev) => [...prev, userMessage])
     setInput("")
-    setSelectedFiles([])
     setIsLoading(true)
 
     try {
@@ -68,7 +57,6 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: input,
-          files: selectedFiles.map((f) => ({ name: f.name, url: f.url, type: f.type })),
         }),
       })
 
@@ -98,14 +86,33 @@ export default function ChatPage() {
     localStorage.removeItem("chat-history")
   }
 
+  const exportHistory = () => {
+    const dataStr = JSON.stringify(messages, null, 2)
+    const blob = new Blob([dataStr], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `chat-history-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b px-6 py-4">
         <h1 className="text-xl font-semibold">Chat</h1>
         {messages.length > 0 && (
-          <Button variant="outline" size="sm" onClick={clearHistory}>
-            Clear History
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportHistory}>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button variant="outline" size="sm" onClick={clearHistory}>
+              Clear History
+            </Button>
+          </div>
         )}
       </header>
 
@@ -118,7 +125,7 @@ export default function ChatPage() {
               </div>
               <h2 className="mt-4 text-lg font-medium">Start a conversation</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Send a message or attach files to begin.
+                Send a message to begin.
               </p>
             </div>
           ) : (
@@ -139,10 +146,6 @@ export default function ChatPage() {
 
       <div className="border-t px-6 py-4">
         <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
-          <FileSelector
-            selectedFiles={selectedFiles}
-            onFilesChange={setSelectedFiles}
-          />
           <div className="flex gap-2">
             <Textarea
               value={input}
