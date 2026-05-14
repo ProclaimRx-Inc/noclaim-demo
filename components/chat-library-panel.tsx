@@ -70,10 +70,7 @@ export function ChatLibraryPanel() {
       <aside className="flex max-h-[40vh] w-full shrink-0 flex-col border-t border-border bg-muted/20 md:max-h-none md:w-80 md:border-t-0 md:border-l">
         <div className="border-b px-3 py-3">
           <h2 className="text-sm font-semibold">Library</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Files from <code className="rounded bg-muted px-0.5">public/library/</code>. Checked items are sent with
-            each message.
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Checked items are sent with each message.</p>
           {manifest.length > 0 && (
             <div className="mt-2 flex gap-2">
               <Button type="button" variant="secondary" size="sm" className="h-7 flex-1 text-xs" onClick={onSelectAll}>

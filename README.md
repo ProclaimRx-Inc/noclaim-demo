@@ -32,7 +32,7 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 ```
 
 3. Deploy (e.g. push to Vercel). The manifest is loaded when you open **Chat** (hard refresh the page after a deploy if the list looks stale).
-4. On **Chat**, use the right panel to check files, **Select all** / **Unselect all**, and **Preview** (CSV files show as a markdown heading + table). The API still receives the raw file text in a document block. If the model rejects the request for **context length**, the chat shows a clear **context window limit** message.
+4. On **Chat**, use the right panel to check files, **Select all** / **Unselect all**, and **Preview** (raw text in a monospace block). The API still receives the raw file text in a document block. If the model rejects the request for **context length**, the chat shows a clear **context window limit** message.
 
 ### Parquet → text (for dimensions / extracts)
 

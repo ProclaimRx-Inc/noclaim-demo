@@ -1,7 +1,7 @@
 [
   {
-    "id": "dim-hcpspecialty-202604021401",
-    "name": "HCP specialty dimension",
-    "path": "dim_hcpspecialty_202604021401.csv"
+    "id": "copay-activity",
+    "name": "Copay activity",
+    "path": "copay_activity.csv"
   }
 ]
