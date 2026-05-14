@@ -1,6 +1,9 @@
+"use client"
+
 import { User, Bot, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ChatMessage } from "@/lib/types"
+import { ChatMarkdown } from "@/components/chat-markdown"
 
 export function ChatMessage({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user"
@@ -37,7 +40,11 @@ export function ChatMessage({ message }: { message: ChatMessage }) {
             ))}
           </div>
         )}
-        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+        ) : (
+          <ChatMarkdown source={message.content} />
+        )}
       </div>
     </div>
   )

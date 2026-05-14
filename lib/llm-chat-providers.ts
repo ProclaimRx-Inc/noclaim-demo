@@ -18,6 +18,14 @@ export function buildSystemFromFiles(files: { plaintext: string }[]): string | u
   return DOC_SYSTEM_PREAMBLE + docBlock
 }
 
+const ASSISTANT_MARKDOWN_HINT =
+  "When you reply to the user, you may use GitHub-flavored Markdown (headings, bullet or numbered lists, links, inline code, fenced code blocks, and tables) when it improves readability. The chat UI renders Markdown in assistant messages."
+
+export function buildChatSystem(files: { plaintext: string }[]): string {
+  const doc = buildSystemFromFiles(files)
+  return doc ? `${ASSISTANT_MARKDOWN_HINT}\n\n${doc}` : ASSISTANT_MARKDOWN_HINT
+}
+
 export function turnsFromClientMessages(
   messages: { role: string; content: string }[]
 ): ChatTurn[] {
@@ -33,13 +41,10 @@ export function turnsFromClientMessages(
 export async function completeOpenAI(
   apiKey: string,
   model: string,
-  system: string | undefined,
+  system: string,
   turns: ChatTurn[]
 ): Promise<string> {
-  const apiMessages: ChatCompletionMessageParam[] = []
-  if (system) {
-    apiMessages.push({ role: "system", content: system })
-  }
+  const apiMessages: ChatCompletionMessageParam[] = [{ role: "system", content: system }]
   for (const t of turns) {
     apiMessages.push({ role: t.role, content: t.content })
   }
@@ -58,14 +63,14 @@ export async function completeOpenAI(
 export async function completeAnthropic(
   apiKey: string,
   model: string,
-  system: string | undefined,
+  system: string,
   turns: ChatTurn[]
 ): Promise<string> {
   const client = new Anthropic({ apiKey })
   const res = await client.messages.create({
     model,
     max_tokens: 16384,
-    system: system ?? undefined,
+    system,
     messages: turns.map((t) => ({
       role: t.role,
       content: t.content,
@@ -85,7 +90,7 @@ export async function completeAnthropic(
 export async function completeGemini(
   apiKey: string,
   modelId: string,
-  system: string | undefined,
+  system: string,
   turns: ChatTurn[]
 ): Promise<string> {
   const genAI = new GoogleGenerativeAI(apiKey)

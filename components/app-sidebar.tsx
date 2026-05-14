@@ -2,28 +2,13 @@
 
 import { MessageSquare, LogOut } from "lucide-react"
 import { ChatSessionsSidebar } from "@/components/chat-sessions-sidebar"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
 import { useClerk, useUser } from "@clerk/nextjs"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-const navigation = [{ name: "Chat", href: "/chat", icon: MessageSquare }]
-
 export function AppSidebar() {
-  const pathname = usePathname()
   const { signOut } = useClerk()
   const { user } = useUser()
 
@@ -38,22 +23,6 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
-                    <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
         <ChatSessionsSidebar />
       </SidebarContent>
       <SidebarFooter className="border-t">

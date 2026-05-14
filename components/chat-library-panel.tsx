@@ -137,13 +137,13 @@ export function ChatLibraryPanel() {
           <DialogHeader className="shrink-0 space-y-2 border-b pb-4 text-left">
             <DialogTitle>Preview: {preview?.title}</DialogTitle>
             <DialogDescription className="text-left">
-              Markdown view for reading. The chat API receives the raw file body in a fixed document block (not this
-              markdown table).
+              Raw file text in a monospace block. The model still receives the same plain file body when a file is
+              checked in the library.
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="max-h-[min(60vh,480px)] min-h-[200px] pr-3">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-2 pr-1">
             {preview ? <LibraryMarkdownPreview markdown={preview.markdown} /> : null}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>

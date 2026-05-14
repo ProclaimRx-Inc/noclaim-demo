@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { isLikelyContextLimitMessage } from "@/lib/is-context-limit-message"
 import {
-  buildSystemFromFiles,
+  buildChatSystem,
   completeAnthropic,
   completeGemini,
   completeOpenAI,
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const system = buildSystemFromFiles(Array.isArray(files) ? files : [])
+  const system = buildChatSystem(Array.isArray(files) ? files : [])
   const turns = turnsFromClientMessages(messages)
   if (turns.length === 0) {
     return NextResponse.json({ error: "No valid messages" }, { status: 400 })

@@ -57,8 +57,6 @@ function ChatSessionsInner() {
     return () => window.removeEventListener("noclaim-chats-updated", reload)
   }, [reload])
 
-  if (!pathname?.startsWith("/chat")) return null
-
   const onNewChat = () => {
     const s = createEmptySession()
     const all = loadSessions()
@@ -80,7 +78,7 @@ function ChatSessionsInner() {
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel>Chats</SidebarGroupLabel>
+        <SidebarGroupLabel>Chat History</SidebarGroupLabel>
         <SidebarGroupContent>
           <div className="px-2 pb-2">
             <Button variant="outline" size="sm" className="w-full" onClick={onNewChat}>
