@@ -45,3 +45,5 @@ Technical preferences:
 - Keep components modular
 - Avoid unnecessary abstractions
 - Avoid Redux/global state libraries
+
+Test
