@@ -15,6 +15,8 @@ export default function SignInPage() {
           elements: {
             formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90",
             card: "shadow-none",
+            headerTitle: "text-lg font-semibold",
+            headerSubtitle: "text-muted-foreground",
           },
         }}
       />

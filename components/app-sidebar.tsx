@@ -1,6 +1,7 @@
 "use client"
 
 import { MessageSquare, FileText, LogOut } from "lucide-react"
+import { ChatSessionsSidebar } from "@/components/chat-sessions-sidebar"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { useClerk, useUser } from "@clerk/nextjs"
@@ -21,7 +22,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 const navigation = [
   { name: "Chat", href: "/chat", icon: MessageSquare },
-  { name: "Files", href: "/files", icon: FileText },
+  { name: "Library", href: "/files", icon: FileText },
 ]
 
 export function AppSidebar() {
@@ -36,7 +37,7 @@ export function AppSidebar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <MessageSquare className="h-4 w-4" />
           </div>
-          <span className="font-semibold">Demo Chat</span>
+          <span className="font-semibold">Noclaim</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -56,6 +57,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <ChatSessionsSidebar />
       </SidebarContent>
       <SidebarFooter className="border-t">
         <div className="flex items-center justify-between px-2 py-2">

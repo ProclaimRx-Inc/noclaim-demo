@@ -1,14 +1,8 @@
 import { User, Bot, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { ChatMessage } from "@/lib/types"
 
-interface Message {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  files?: string[]
-}
-
-export function ChatMessage({ message }: { message: Message }) {
+export function ChatMessage({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user"
 
   return (
@@ -27,18 +21,18 @@ export function ChatMessage({ message }: { message: Message }) {
           isUser ? "bg-primary text-primary-foreground" : "bg-muted"
         )}
       >
-        {message.files && message.files.length > 0 && (
+        {message.attachedFileNames && message.attachedFileNames.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {message.files.map((file) => (
+            {message.attachedFileNames.map((name) => (
               <div
-                key={file}
+                key={name}
                 className={cn(
                   "flex items-center gap-1 rounded px-2 py-1 text-xs",
                   isUser ? "bg-primary-foreground/20" : "bg-background"
                 )}
               >
                 <FileText className="h-3 w-3" />
-                <span className="truncate max-w-[150px]">{file}</span>
+                <span className="max-w-[180px] truncate">{name}</span>
               </div>
             ))}
           </div>
