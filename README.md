@@ -34,7 +34,30 @@ Internal **Noclaim** chat app: Next.js (App Router), TypeScript, Tailwind, shadc
 3. Deploy (e.g. push to Vercel). In the app, open **Library** and use **Refresh list** if you already had the page open.
 4. Use the checkboxes to choose which files are **included in the next chat** requests. **Preview** shows the exact document block used for the model (the API also prepends a short system instruction before those blocks).
 
-`manifest.json` ships as an empty array until you add real documents.
+### Parquet → text (for dimensions / extracts)
+
+Raw `.parquet` files under `public/library/` are **gitignored** (they can be large). Convert to UTF-8 TSV text and commit the `.txt` plus a `manifest.json` entry:
+
+```bash
+python3 -m venv .venv-parquet && . .venv-parquet/bin/activate && pip install pyarrow
+python scripts/parquet_to_tsv.py public/library/your_file.parquet public/library/your_file.txt
+```
+
+### Library size (demo tradeoffs)
+
+Shipping **very large** `.txt` files in `public/` works for an internal demo, but a few caveats:
+
+- **Browser + model context**: the app loads selected files in the client and sends their full text with each chat request. Huge files mean slow loads, big payloads, and easy **context overflow** (cost + truncation).
+- **Git + deploy size**: large blobs bloat the repo and every Vercel build unless you use **Git LFS** or host files elsewhere.
+
+**Low-hanging fruit** if this grows:
+
+1. **Pre-summarize or slice** data before `.txt` (e.g. top N rows, or one file per topic).
+2. **Smarter selection**: only attach files the user explicitly checks (already the case); add a visible **character / token estimate** in the Library preview later.
+3. **Move blobs to object storage** (Vercel Blob, S3) with signed URLs and server-side fetch + trim — more moving parts, but better than multi‑MB `public/` for production-shaped demos.
+4. **Server-side retrieval** in `/api/chat`: accept file ids, load and cap text on the server (single round trip, easier to enforce limits).
+
+For now, keeping **small–medium** derived `.txt` files in `public/library/` is the simplest path.
 
 ## Environment variables
 

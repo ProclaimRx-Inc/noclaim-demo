@@ -1,0 +1,55 @@
+Code	Specialty
+A	Allergy
+ADL	Adolescent Medicine, Pediatrics
+ADM	Addiction Medicine
+ADU	Other
+AI	Allergy and Immunology
+AN	Anesthesiology
+CCM	Critical Care Medicine, Internal Medicine
+CCP	Pediatric Critical Care Medicine
+CD	Cardiovascular Diseases
+CHN	Child Neurology
+CHP	Child and Adolescent Psychiatry
+D	Dermatology
+DBP	Developmental-Behavioral Pediatrics
+FM	Family Medicine
+GE	Gastroenterology
+GP	General Practice
+HFT	Other
+HOS	Hospitalist
+IM	Internal Medicine
+LM	Legal Medicine
+MHC	Other
+N	Neurology
+NDP	Neurodevelopmental Disabilities, Pediatrics
+NPM	Neonatal-Perinatal Medicine
+NSP	Pediatric Surgery, Neurology
+OBG	Obstetrics and Gynecology
+OCT	Other
+OMM	Osteopathic Manipulative Medicine
+OTO	Otolaryngology
+P	Psychiatry
+PCC	Pulmonary Critical Care Medicine
+PD	Pediatrics
+PDA	Pediatric Allergy
+PDC	Pediatric Cardiology
+PDE	Pediatric Endocrinology
+PDO	Pediatric Otolaryngology
+PDP	Pediatric Pulmonology
+PEM	Pediatric Emergency Medicine
+PG	Pediatric Gastroenterology
+PLI	Pediatric, Clinical & Laboratory Immunology
+PM	Physical Medicine and Rehabilitation
+PMD	Other
+PN	Pediatric Nephrology
+POD	Other
+PPR	Pediatric Rheumatology
+PSC	Other
+PSU	Other
+PSY	Other
+PUD	Pulmonary Diseases
+PYM	Psychosomatic Medicine
+SME	Sleep Medicine
+UCM	Urgent Care Medicine
+US	Unspecified
+WH	Other

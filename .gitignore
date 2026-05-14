@@ -14,5 +14,9 @@ node_modules
 .next/
 .DS_Store
 .pnpm-store/
+.venv-parquet/
+
+# Large raw extracts — keep derived .txt + manifest.json for the static library (see README).
+public/library/*.parquet
 # clerk configuration (can include secrets)
 /.clerk/
