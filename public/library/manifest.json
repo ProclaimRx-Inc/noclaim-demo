@@ -53,5 +53,10 @@
     "id": "paidsocial-activity",
     "name": "Paid social activity",
     "path": "paidsocial_activity.csv"
+  },
+  {
+    "id": "digitalmedia-activity",
+    "name": "Digital media activity",
+    "path": "digitalmedia_activity.csv"
   }
 ]

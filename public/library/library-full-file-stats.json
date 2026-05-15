@@ -16,5 +16,11 @@
     "rows": 80158,
     "columns": 9,
     "sizeBytes": 13901634
+  },
+  "digitalmedia_activity.csv": {
+    "estimatedTokens": 53311686,
+    "rows": 454431,
+    "columns": 18,
+    "sizeBytes": 213266245
   }
 }
