@@ -22,5 +22,41 @@
     "rows": 346962,
     "columns": 17,
     "sizeBytes": 146069441
+  },
+  "claims_processing_activity.csv": {
+    "estimatedTokens": 13214880,
+    "rows": 749176,
+    "columns": 4,
+    "sizeBytes": 52859404
+  },
+  "claims_status.csv": {
+    "estimatedTokens": 5130515,
+    "rows": 139137,
+    "columns": 12,
+    "sizeBytes": 20521971
+  },
+  "dim_patient.csv": {
+    "estimatedTokens": 5405712,
+    "rows": 294917,
+    "columns": 13,
+    "sizeBytes": 21622757
+  },
+  "hcp_prescribing_activity.csv": {
+    "estimatedTokens": 8338622,
+    "rows": 388830,
+    "columns": 11,
+    "sizeBytes": 33354377
+  },
+  "sales_rep_call_activity.csv": {
+    "estimatedTokens": 7220900,
+    "rows": 141019,
+    "columns": 17,
+    "sizeBytes": 28883497
+  },
+  "hcp_specialty_zip.csv": {
+    "estimatedTokens": 4769721,
+    "rows": 491109,
+    "columns": 7,
+    "sizeBytes": 19078784
   }
 }

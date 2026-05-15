@@ -13,7 +13,13 @@
     "speaker-hcp-activity": 151203,
     "paidsearch-activity": 2936504,
     "paidsocial-activity": 5835259,
-    "digitalmedia-activity": 36512961
+    "digitalmedia-activity": 36512961,
+    "claims-processing-activity": 13214880,
+    "claims-status": 5130515,
+    "dim-patient": 5405712,
+    "hcp-prescribing-activity": 8338622,
+    "hcp-specialty-zip": 4769721,
+    "sales-rep-call-activity": 7220900
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
@@ -27,7 +33,13 @@
     "speaker_hcp_activity.csv": 151203,
     "paidsearch_activity.csv": 2936504,
     "paidsocial_activity.csv": 5835259,
-    "digitalmedia_activity.csv": 36512961
+    "digitalmedia_activity.csv": 36512961,
+    "claims_processing_activity.csv": 13214880,
+    "claims_status.csv": 5130515,
+    "dim_patient.csv": 5405712,
+    "hcp_prescribing_activity.csv": 8338622,
+    "hcp_specialty_zip.csv": 4769721,
+    "sales_rep_call_activity.csv": 7220900
   },
   "fileStats": {
     "hcp_specialty.csv": {
@@ -101,6 +113,42 @@
       "rows": 346962,
       "columns": 17,
       "sizeBytes": 146069441
+    },
+    "claims_processing_activity.csv": {
+      "estimatedTokens": 13214880,
+      "rows": 749176,
+      "columns": 4,
+      "sizeBytes": 52859404
+    },
+    "claims_status.csv": {
+      "estimatedTokens": 5130515,
+      "rows": 139137,
+      "columns": 12,
+      "sizeBytes": 20521971
+    },
+    "dim_patient.csv": {
+      "estimatedTokens": 5405712,
+      "rows": 294917,
+      "columns": 13,
+      "sizeBytes": 21622757
+    },
+    "hcp_prescribing_activity.csv": {
+      "estimatedTokens": 8338622,
+      "rows": 388830,
+      "columns": 11,
+      "sizeBytes": 33354377
+    },
+    "hcp_specialty_zip.csv": {
+      "estimatedTokens": 4769721,
+      "rows": 491109,
+      "columns": 7,
+      "sizeBytes": 19078784
+    },
+    "sales_rep_call_activity.csv": {
+      "estimatedTokens": 7220900,
+      "rows": 141019,
+      "columns": 17,
+      "sizeBytes": 28883497
     }
   }
 }

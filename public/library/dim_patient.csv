@@ -1,0 +1,101 @@
+patient_id,product,current_prescriber,remaining,next_due_day,city,state,age_band,prior_non_neurexa_therapies,recent_therapy_switch_6mo,trivaxa_propensity,zemlora_propensity,discontinuations
+Pf05fd654fd67,Bravexal,8327219914,0,20426,Westfield,NJ,child,0,False,1,0,False
+P30129c671d41,Bravexal,6742381873,1,20322,Birmingham,AL,child,0,False,1,0,False
+P8442b8963661,Bravexal,8327219914,1,20329,Westfield,NJ,adult,1,False,0,0,False
+Pf76cf3c92f60,Bravexal,8327219914,2,20354,Westfield,NJ,adult,2,False,0,1,False
+P7289677cddcf,Bravexal,5716918491,1,20397,Hackensack,NJ,adult,1,False,0,0,False
+Pbe4b240afa59,Bravexal,3182070062,1,20411,Birmingham,AL,child,1,False,1,0,False
+Pc969d51ea734,Bravexal,4507051857,1,20425,Tampa,FL,adult,3,False,0,1,False
+Pfcc9dde692b5,Bravexal,4507051857,1,20426,Tampa,FL,adult,1,False,0,0,False
+Pb6fef07fd2da,Bravexal,7784194688,0,20427,Tampa,FL,adult,0,False,0,0,False
+P61c8b60b4249,Bravexal,8702271169,2,20427,Alpharetta,GA,adult,1,False,0,0,False
+Pca90c1a44a92,Bravexal,8327219914,2,20427,Westfield,NJ,adult,0,False,0,0,False
+P63ab44e211d4,Bravexal,8696061762,1,20427,Ellisville,MO,adult,0,False,0,0,False
+P833e5e8cf3dc,Bravexal,8584958439,1,20427,Tampa,FL,adult,0,True,0,1,False
+P156f953bc5ef,Bravexal,4507051857,3,20428,Tampa,FL,child,2,True,0,0,False
+Peac01d78d709,Bravexal,6907889996,1,20428,Maryville,IL,adult,0,False,0,0,False
+P3f314e99987e,Bravexal,5716918491,0,20429,Hackensack,NJ,adult,1,False,0,0,False
+P70d143d10ad9,Bravexal,2582938662,1,20431,Jacksonville,FL,adult,3,True,0,1,False
+Pfe7180b33d22,Bravexal,7834765190,1,20431,Ellisville,MO,child,1,False,1,0,False
+Pad08e9c78969,Bravexal,8584958439,4,20431,Tampa,FL,adult,3,False,0,1,False
+P7bc6e7bd1793,Bravexal,7784194688,0,20432,Tampa,FL,child,0,True,0,0,False
+P4b5b1226be45,Bravexal,4742607225,1,20432,Atlanta,GA,adult,1,False,0,0,False
+P89f70ed44c84,Bravexal,8696061762,0,20432,Ellisville,MO,adult,2,False,0,1,False
+Pf7ea25630ab3,Bravexal,3030825861,1,20432,Gilbert,AZ,child,2,False,0,0,False
+P6b6de707de74,Bravexal,4507051857,0,20432,Tampa,FL,adult,4,False,0,1,False
+Paa57a4b4537d,Bravexal,8621682147,0,20432,Mesa,AZ,adult,3,False,0,1,False
+P1f7d9ac8f68e,Bravexal,9446994501,1,20432,Atlanta,GA,adult,2,False,0,1,False
+P66627fb628da,Bravexal,8317779603,1,20432,Millburn,NJ,adult,1,False,0,0,False
+P53477b1ae8d8,Bravexal,4742607225,0,20433,Atlanta,GA,child,1,False,1,0,False
+P83922cc49a26,Bravexal,3030825861,0,20433,Gilbert,AZ,adult,1,False,0,0,False
+Pb66188d6b455,Bravexal,4507051857,2,20433,Tampa,FL,adult,3,False,0,1,False
+P0329aaa84ba1,Bravexal,2664332686,2,20433,Greenville,SC,adult,1,False,0,0,False
+P06590ba933bc,Bravexal,7784194688,0,20434,Tampa,FL,child,0,False,1,0,False
+Pd72d1320a06a,Bravexal,335380622,0,20434,Saint Louis,MO,adult,4,False,0,1,False
+P5575ca61a0ad,Bravexal,8327219914,3,20434,Westfield,NJ,child,0,False,1,0,False
+P4a815195f603,Bravexal,3030825861,0,20434,Gilbert,AZ,adult,2,False,0,1,False
+P02651bea6874,Bravexal,4742607225,1,20435,Atlanta,GA,adult,2,False,0,1,False
+P4848bc77d686,Bravexal,4507051857,0,20435,Tampa,FL,child,0,False,1,0,False
+P8c7eba81d35c,Bravexal,335380622,0,20438,Saint Louis,MO,child,0,False,1,0,False
+P4be3e29bba98,Bravexal,4507051857,0,20438,Tampa,FL,child,1,False,1,0,False
+Pfbcfd21d5699,Bravexal,3030825861,1,20439,Gilbert,AZ,adult,3,False,0,1,False
+P99b24f030e34,Bravexal,8621682147,0,20440,Mesa,AZ,adult,2,False,0,1,False
+Pf881bc3eb103,Bravexal,4742607225,0,20441,Atlanta,GA,child,1,False,1,0,False
+P50c35ed26ca0,Bravexal,335380622,0,20441,Saint Louis,MO,adult,0,False,0,0,False
+P25e3526fe10e,Bravexal,3030825861,3,20441,Gilbert,AZ,adult,3,True,0,1,False
+Pdb7bebdbd0ca,Bravexal,335380622,0,20442,Saint Louis,MO,child,1,False,1,0,False
+Pe4caa7d457a0,Bravexal,4088725196,4,20442,Tampa,FL,adult,1,False,0,0,False
+Pe66826eb363a,Bravexal,5207632600,1,20445,Sun City,AZ,adult,3,False,0,1,False
+Pc2ae474e3830,Bravexal,4742607225,0,20445,Atlanta,GA,child,1,False,1,0,False
+P55cf898bdbb9,Bravexal,3118928970,1,20445,Tempe,AZ,adult,4,True,0,1,False
+P16199e0acc97,Bravexal,5207632600,3,20446,Sun City,AZ,adult,2,False,0,1,False
+P2c1d7899eede,Bravexal,4247535341,0,20446,Westerville,OH,adult,2,False,0,1,False
+P8347bd59250e,Bravexal,8702271169,1,20446,Alpharetta,GA,adult,3,False,0,1,False
+Pf8e3eca63cf2,Bravexal,2656054914,2,20446,Saint Louis,MO,adult,1,False,0,0,False
+Pe054f6ef3db9,Bravexal,3030825861,0,20446,Gilbert,AZ,adult,1,False,0,0,False
+Pd3ce8c8d065d,Bravexal,5468681611,1,20446,Denville,NJ,adult,2,False,0,1,False
+Pb3a34ff2f443,Bravexal,3230275008,0,20446,Newark,OH,adult,2,False,0,1,False
+P80a92f7234e4,Bravexal,5207632600,1,20447,Sun City,AZ,adult,2,False,0,1,False
+P5839130112c9,Bravexal,4705137690,1,20447,Plano,TX,child,1,False,1,0,False
+Pfe85ec8537a4,Bravexal,8696061762,1,20448,Ellisville,MO,adult,5,True,0,1,False
+P1de50d984bc6,Bravexal,3030825861,0,20448,Gilbert,AZ,adult,3,True,0,1,False
+Pf62f2b982fc8,Bravexal,8333281460,2,20448,Mesa,AZ,child,0,False,1,0,False
+P699fae064133,Bravexal,9550813036,1,20448,Trinity,FL,child,0,False,1,0,False
+P563aa02ded52,Bravexal,3118928970,0,20448,Tempe,AZ,adult,2,False,0,1,False
+P84dffd00bbea,Cymbrin,5679298504,0,19968,New Providnce,NJ,child,0,False,1,0,False
+P1b1bf35b4880,Cymbrin,5912280195,0,19846,Bayonne,NJ,child,1,False,1,0,False
+P86cedbf2604c,Cymbrin,8795069711,0,19968,Whippany,NJ,adult,2,False,0,1,False
+Paacb8bf3f0aa,Cymbrin,4639006545,0,19846,West Orange,NJ,child,0,False,1,0,False
+P54ad39cbd1f5,Cymbrin,4639006545,0,20110,West Orange,NJ,adult,5,False,0,1,False
+Pc60430edc457,Cymbrin,5679298504,0,19973,New Providnce,NJ,adult,0,False,0,0,False
+P3677e0a59bdf,Cymbrin,8795069711,0,19972,Whippany,NJ,child,2,False,0,0,False
+P39688233fc1f,Cymbrin,4639006545,0,19850,West Orange,NJ,adult,1,False,0,0,False
+Pa2794bae7081,Cymbrin,8795069711,0,19852,Whippany,NJ,adult,2,False,0,1,False
+Pdf73bd67b961,Cymbrin,5679298504,0,19976,New Providnce,NJ,adult,1,False,0,0,False
+P428ab35f4e60,Cymbrin,4639006545,0,19853,West Orange,NJ,adult,0,False,0,0,False
+Pf31796fd96ff,Cymbrin,4835322916,0,19853,Fair Lawn,NJ,child,1,False,1,0,False
+P8a278fde9ceb,Cymbrin,8795069711,0,19854,Whippany,NJ,adult,2,True,0,1,False
+P0618284dd098,Cymbrin,5679298504,0,20115,New Providnce,NJ,child,0,False,1,0,False
+P769b27f4e7a2,Cymbrin,8795069711,0,19855,Whippany,NJ,adult,1,False,0,0,False
+P72e181e66305,Cymbrin,5679298504,0,19857,New Providnce,NJ,child,0,False,1,0,False
+P17d0a2ea41e1,Cymbrin,1481410740,0,20033,Jersey City,NJ,child,0,False,1,0,False
+P6c653a065850,Cymbrin,8795069711,0,19985,Whippany,NJ,adult,1,False,0,0,False
+Pebeeb349bbf6,Cymbrin,5679298504,0,20118,New Providnce,NJ,child,2,False,0,0,False
+Pb3414414c6dc,Cymbrin,6030967029,3,20007,Toms River,NJ,adult,2,False,0,1,False
+P488cdc6ca4ff,Cymbrin,9531803120,0,19860,New Providnce,NJ,adult,2,False,0,1,False
+P3b1df17700fb,Cymbrin,8795069711,0,19860,Whippany,NJ,adult,1,False,0,0,False
+P85a491ac1961,Cymbrin,2447028649,0,19993,Toms River,NJ,adult,1,False,0,0,False
+P84de307a9ca2,Cymbrin,8995944500,0,20121,New Providnce,NJ,adult,1,False,0,0,False
+Pf70dc54461b5,Cymbrin,8795069711,0,19861,Whippany,NJ,child,1,False,1,0,False
+P06dcba7a2747,Cymbrin,5679298504,0,20126,New Providnce,NJ,adult,5,False,0,1,False
+P78615caaf93d,Cymbrin,5977582272,0,20120,West Orange,NJ,child,2,False,0,0,False
+P20b21215ea9a,Cymbrin,2472835492,0,19863,New Providnce,NJ,child,0,False,1,0,False
+P1b498c63de51,Cymbrin,5679298504,0,19864,New Providnce,NJ,adult,2,False,0,1,False
+Pdbd9be20e2ee,Cymbrin,8795069711,0,20114,Whippany,NJ,child,1,False,1,0,False
+Pa9c57c8c6a96,Cymbrin,4639006545,0,19865,West Orange,NJ,adult,1,False,0,0,False
+P94f42c80b239,Cymbrin,5679298504,0,19994,New Providnce,NJ,adult,2,True,0,1,False
+Pc2f13f78eda1,Cymbrin,8795069711,0,20253,Whippany,NJ,child,1,False,1,0,False
+P6db2f301f6a1,Cymbrin,5679298504,0,19868,New Providnce,NJ,adult,1,True,0,1,False
+Pab39bdeab8c5,Cymbrin,5651154223,0,19868,Hackensack,NJ,child,1,True,0,0,False
+P07b975688aff,Cymbrin,5912280195,0,19993,Bayonne,NJ,adult,1,False,0,0,False
+P4a01023f9f84,Cymbrin,8795069711,0,19868,Whippany,NJ,child,1,False,1,0,False

@@ -1,0 +1,101 @@
+id,prescriber_npi,product_name,nhs_ic_exclision_specialty,total_trx,total_units,patient_id,date_submitted,distribution_channel,payer,abandoned
+24087,9274593966,Zemlora,0,0,0.0,P0006ee883dcb,2024-06-08,Hub,government,True
+24088,8650326966,Zemlora,0,0,0.0,P003621aa36bb,2024-06-08,Hub,government,True
+24089,777559305,Zemlora,0,0,0.0,P00c0eb7331bd,2024-06-08,Hub,government,True
+24090,119819097,Zemlora,0,1,1.0,P00c791167fe8,2024-06-08,Specialty Pharmacy,commercial,False
+24091,9441413261,Zemlora,0,1,1.0,P00cb4fac8f6a,2024-06-08,Specialty Pharmacy,commercial,False
+24092,254990170,Zemlora,0,1,1.0,P00cde54e861f,2024-06-08,Hub,commercial,False
+24093,2390962651,Zemlora,0,0,0.0,P01851e06429e,2024-06-08,Hub,government,True
+24094,1341031709,Zemlora,0,1,1.0,P02295528e6bf,2024-06-08,Hub,commercial,False
+24095,5431603328,Zemlora,0,1,1.0,P02cbaada78ce,2024-06-08,Specialty Pharmacy,commercial,False
+24096,7183867452,Zemlora,0,1,1.0,P02f37ffd7911,2024-06-08,Hub,commercial,False
+24097,7651068509,Zemlora,0,0,0.0,P0392ce0d0394,2024-06-08,Hub,government,True
+24098,2149493745,Zemlora,0,0,0.0,P046dc4f2f905,2024-06-08,Specialty Pharmacy,commercial,True
+24099,8703449290,Zemlora,0,0,0.0,P051995a32e24,2024-06-08,Hub,government,True
+24100,8258167306,Zemlora,0,0,0.0,P05251d00e4ed,2024-06-08,Specialty Pharmacy,government,True
+24101,6008882532,Zemlora,0,0,0.0,P06201c6dffc1,2024-06-08,Specialty Pharmacy,government,True
+24102,5236395728,Zemlora,0,1,1.0,P07904f1e490b,2024-06-08,Specialty Pharmacy,commercial,False
+24103,8378890628,Zemlora,0,0,0.0,P07958d9a8882,2024-06-08,Hub,commercial,True
+24104,3532372696,Zemlora,0,1,1.0,P07ba43f066c5,2024-06-08,Specialty Pharmacy,commercial,False
+24105,4379034889,Zemlora,0,1,1.0,P07f0786a3122,2024-06-08,Hub,commercial,False
+24106,1720472009,Zemlora,0,1,1.0,P08bcfa2a8289,2024-06-08,Hub,commercial,False
+24107,2387708846,Zemlora,0,1,1.0,P08cd46ccea2b,2024-06-08,Specialty Pharmacy,commercial,False
+24108,343996571,Zemlora,0,1,1.0,P08d7d737a6fd,2024-06-08,Specialty Pharmacy,commercial,False
+24109,8193274875,Zemlora,0,0,0.0,P09144267e682,2024-06-08,Hub,government,True
+24110,6027683816,Zemlora,0,1,1.0,P0a319a2147d5,2024-06-08,Hub,commercial,False
+24111,8299363444,Zemlora,0,1,1.0,P0a7b60fca468,2024-06-08,Specialty Pharmacy,commercial,False
+24112,3627878141,Zemlora,0,1,1.0,P0ac525822e9e,2024-06-08,Hub,commercial,False
+24113,4367754600,Zemlora,0,1,1.0,P0b16f7a4084d,2024-06-08,Specialty Pharmacy,commercial,False
+24114,9069672687,Zemlora,0,1,1.0,P0b23a40242b5,2024-06-08,Specialty Pharmacy,commercial,False
+24115,2880115907,Zemlora,0,1,1.0,P0b4defc22656,2024-06-08,Specialty Pharmacy,commercial,False
+24116,7327392338,Zemlora,0,1,1.0,P0be09e2a795a,2024-06-08,Hub,commercial,False
+24117,8869842119,Zemlora,0,0,0.0,P0cc361311c46,2024-06-08,Hub,government,True
+24118,7072366089,Zemlora,0,1,1.0,P0cc4298f324b,2024-06-08,Hub,commercial,False
+24119,2762592954,Zemlora,0,1,1.0,P0d562be31c57,2024-06-08,Hub,commercial,False
+24120,2211301973,Zemlora,0,0,0.0,P0df996af00f4,2024-06-08,Hub,government,True
+24121,4253695945,Zemlora,0,1,1.0,P0dfc1cc56914,2024-06-08,Hub,commercial,False
+24122,5730981454,Zemlora,0,1,1.0,P0e11efde8338,2024-06-08,Specialty Pharmacy,commercial,False
+24123,2236202316,Zemlora,0,0,0.0,P0e9c20e1f2d9,2024-06-08,Hub,government,True
+24124,4300920697,Zemlora,0,0,0.0,P0fbf3600c835,2024-06-08,Specialty Pharmacy,commercial,True
+24125,6590616338,Zemlora,0,1,1.0,P10001f3e1674,2024-06-08,Hub,commercial,False
+24126,4193731699,Zemlora,0,1,1.0,P1048d5d86242,2024-06-08,Specialty Pharmacy,commercial,False
+24127,3980176934,Zemlora,0,0,0.0,P119d2c70f137,2024-06-08,Hub,commercial,True
+24128,5262684604,Zemlora,0,0,0.0,P120dc81e85f1,2024-06-08,Hub,government,True
+24129,223975953,Zemlora,0,0,0.0,P126825675bf7,2024-06-08,Specialty Pharmacy,government,True
+24130,4233766456,Zemlora,0,1,1.0,P127c7b480740,2024-06-08,Hub,commercial,False
+24131,429972458,Zemlora,0,1,1.0,P130fb0694eb3,2024-06-08,Hub,commercial,False
+24132,8960960276,Zemlora,0,1,1.0,P13154076ff61,2024-06-08,Specialty Pharmacy,commercial,False
+24133,5128108676,Zemlora,0,0,0.0,P13c9aad76395,2024-06-08,Specialty Pharmacy,commercial,True
+24134,4442052316,Zemlora,0,0,0.0,P14734ddb6c62,2024-06-08,Specialty Pharmacy,government,True
+24135,2410993640,Zemlora,0,1,1.0,P149d21fcec27,2024-06-08,Hub,commercial,False
+24136,4380581962,Zemlora,0,0,0.0,P14cf2f15d380,2024-06-08,Hub,government,True
+24137,1402155472,Zemlora,0,1,1.0,P16385e7d99cb,2024-06-08,Specialty Pharmacy,commercial,False
+24138,4826309350,Zemlora,0,0,0.0,P1655f1e5455b,2024-06-08,Specialty Pharmacy,government,True
+24139,7297951639,Zemlora,0,0,0.0,P16574c7f8c2a,2024-06-08,Specialty Pharmacy,government,True
+24140,7323017666,Zemlora,0,0,0.0,P16f205414f37,2024-06-08,Specialty Pharmacy,commercial,True
+24141,2626499859,Zemlora,0,0,0.0,P172a37c56c8f,2024-06-08,Specialty Pharmacy,commercial,True
+24142,7749118310,Zemlora,0,0,0.0,P183272419abb,2024-06-08,Specialty Pharmacy,government,True
+24143,139716471,Zemlora,0,0,0.0,P184f71ae77e0,2024-06-08,Hub,government,True
+24144,6367533668,Zemlora,0,1,1.0,P18c64c59ff1f,2024-06-08,Hub,commercial,False
+24145,98699290,Zemlora,0,0,0.0,P18fb57059071,2024-06-08,Specialty Pharmacy,government,True
+24146,4078306270,Zemlora,0,1,1.0,P19154f4dc9f6,2024-06-08,Specialty Pharmacy,commercial,False
+24147,9465586479,Zemlora,0,0,0.0,P1a7149210083,2024-06-08,Hub,government,True
+24148,1769149626,Zemlora,0,0,0.0,P1a7258e1fd7d,2024-06-08,Hub,government,True
+24149,5643818696,Zemlora,0,0,0.0,P1c2b7ce0adb9,2024-06-08,Specialty Pharmacy,government,True
+24150,8732581135,Zemlora,0,1,1.0,P1d17078e31c1,2024-06-08,Specialty Pharmacy,commercial,False
+24151,2592098548,Zemlora,0,0,0.0,P1d39686439a9,2024-06-08,Specialty Pharmacy,government,True
+24152,305740274,Zemlora,0,1,1.0,P1d3cad98141d,2024-06-08,Hub,commercial,False
+24153,5711271694,Zemlora,0,0,0.0,P1e5b3a672bba,2024-06-08,Hub,commercial,True
+24154,2169933834,Zemlora,0,1,1.0,P1efe585d1b50,2024-06-08,Hub,commercial,False
+24155,6573056069,Zemlora,0,1,1.0,P1f4afcdc5216,2024-06-08,Hub,commercial,False
+24156,6991812884,Zemlora,0,1,1.0,P204c3b5819c2,2024-06-08,Hub,commercial,False
+24157,8295982362,Zemlora,0,0,0.0,P21189929b1b9,2024-06-08,Specialty Pharmacy,government,True
+24158,2085448191,Zemlora,0,1,1.0,P21cff0e41938,2024-06-08,Specialty Pharmacy,commercial,False
+24159,3396912756,Zemlora,0,0,0.0,P23686aa23bd1,2024-06-08,Hub,government,True
+24160,2099018743,Zemlora,0,1,1.0,P2374d9968d98,2024-06-08,Hub,commercial,False
+24161,2364500664,Zemlora,0,1,1.0,P23a37598748d,2024-06-08,Specialty Pharmacy,government,False
+24162,2386362672,Zemlora,0,0,0.0,P23ea2f4207d6,2024-06-08,Specialty Pharmacy,government,True
+24163,9212116311,Zemlora,0,0,0.0,P24aa076b27e9,2024-06-08,Specialty Pharmacy,government,True
+24164,4424637244,Zemlora,0,1,1.0,P250e5a5e8696,2024-06-08,Specialty Pharmacy,commercial,False
+24165,9600729936,Zemlora,0,0,0.0,P2523dd89ef77,2024-06-08,Specialty Pharmacy,government,True
+24166,3514423438,Zemlora,0,1,1.0,P255c27d2db4f,2024-06-08,Hub,commercial,False
+24167,9116375122,Zemlora,0,1,1.0,P26a465f77223,2024-06-08,Specialty Pharmacy,commercial,False
+24168,5056200287,Zemlora,0,1,1.0,P27051c7beea3,2024-06-08,Hub,commercial,False
+24169,3805188414,Zemlora,0,1,1.0,P27f2fffd2290,2024-06-08,Hub,commercial,False
+24170,6044354083,Zemlora,0,1,1.0,P28c44ca4afa6,2024-06-08,Specialty Pharmacy,commercial,False
+24171,5535196059,Zemlora,0,1,1.0,P29926b7623b0,2024-06-08,Specialty Pharmacy,commercial,False
+24172,3851297361,Zemlora,0,0,0.0,P2a69f066ea18,2024-06-08,Hub,commercial,True
+24173,3468949379,Zemlora,0,1,1.0,P2a9e1960e49e,2024-06-08,Specialty Pharmacy,commercial,False
+24174,6231060052,Zemlora,0,1,1.0,P2ab17a7c517a,2024-06-08,Specialty Pharmacy,commercial,False
+24175,7651068509,Zemlora,0,0,0.0,P2bbf69008915,2024-06-08,Hub,government,True
+24176,5762387904,Zemlora,0,1,1.0,P2da65bac95c5,2024-06-08,Specialty Pharmacy,commercial,False
+24177,261551207,Zemlora,0,0,0.0,P2f29b1588a16,2024-06-08,Hub,government,True
+24178,3083341527,Zemlora,0,1,1.0,P2fb7b0cbaf8e,2024-06-08,Hub,commercial,False
+24179,9306875948,Zemlora,0,1,1.0,P2fe66cbc7af6,2024-06-08,Specialty Pharmacy,commercial,False
+24180,5900223600,Zemlora,0,1,1.0,P303089051869,2024-06-08,Specialty Pharmacy,commercial,False
+24181,2590228692,Zemlora,0,1,1.0,P30591dcd8757,2024-06-08,Specialty Pharmacy,commercial,False
+24182,3306749837,Zemlora,0,0,0.0,P30bf60795f7d,2024-06-08,Specialty Pharmacy,commercial,True
+24183,2503297517,Zemlora,0,1,1.0,P30dd17976c8c,2024-06-08,Hub,commercial,False
+24184,5346759005,Zemlora,0,0,0.0,P310480e79422,2024-06-08,Specialty Pharmacy,government,True
+24185,7817413395,Zemlora,0,1,1.0,P3114533e8d72,2024-06-08,Hub,commercial,False
+24186,6224706090,Zemlora,0,0,0.0,P313450e99875,2024-06-08,Specialty Pharmacy,government,True
