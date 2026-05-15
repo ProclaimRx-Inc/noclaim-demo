@@ -12,9 +12,9 @@
     "sizeBytes": 23340931
   },
   "email_activity.csv": {
-    "estimatedTokens": 3515512,
+    "estimatedTokens": 3475432,
     "rows": 80158,
-    "columns": 10,
-    "sizeBytes": 14061957
+    "columns": 9,
+    "sizeBytes": 13901634
   }
 }
