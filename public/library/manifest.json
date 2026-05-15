@@ -38,5 +38,10 @@
     "id": "paidsearch-activity",
     "name": "Paid search activity",
     "path": "paidsearch_activity.csv"
+  },
+  {
+    "id": "paidsocial-activity",
+    "name": "Paid social activity",
+    "path": "paidsocial_activity.csv"
   }
 ]
