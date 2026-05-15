@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { LibraryMarkdownPreview } from "@/components/library-markdown-preview"
-import { fetchLibraryFileText, fetchLibraryManifest } from "@/lib/library-client"
+import { fetchLibraryFileStats, fetchLibraryFileText, fetchLibraryManifest } from "@/lib/library-client"
 import { buildLibraryPreviewMarkdown } from "@/lib/library-preview-markdown"
-import type { LibraryFileResolved, LibraryManifestEntry } from "@/lib/types"
+import type { LibraryFileResolved, LibraryFileStats, LibraryManifestEntry } from "@/lib/types"
 import {
   clearSelectedFileIds,
   emitLibrarySelectionChanged,
@@ -24,15 +24,23 @@ import {
   toggleSelectedFileId,
 } from "@/lib/selected-files"
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes < 10 * 1024 ? 1 : 0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export function ChatLibraryPanel() {
   const [manifest, setManifest] = useState<LibraryManifestEntry[]>([])
+  const [fileStats, setFileStats] = useState<Record<string, LibraryFileStats>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [preview, setPreview] = useState<{ markdown: string; title: string } | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
 
   const load = useCallback(async () => {
-    const entries = await fetchLibraryManifest()
+    const [entries, stats] = await Promise.all([fetchLibraryManifest(), fetchLibraryFileStats()])
     setManifest(entries)
+    setFileStats(stats)
     setSelectedIds(getSelectedFileIds())
   }, [])
 
@@ -97,7 +105,9 @@ export function ChatLibraryPanel() {
                 </p>
               </div>
             ) : (
-              manifest.map((entry) => (
+              manifest.map((entry) => {
+                const stats = fileStats[entry.path]
+                return (
                 <div
                   key={entry.id}
                   className="flex items-start gap-2 rounded-md border border-transparent bg-background/60 px-2 py-2 hover:border-border"
@@ -114,6 +124,12 @@ export function ChatLibraryPanel() {
                       {entry.name}
                     </label>
                     <p className="truncate font-mono text-[0.65rem] text-muted-foreground">{entry.path}</p>
+                    {stats ? (
+                      <p className="mt-0.5 text-[0.65rem] leading-snug text-muted-foreground tabular-nums">
+                        ~{stats.estimatedTokens.toLocaleString()} tokens · {stats.rows.toLocaleString()} rows ·{" "}
+                        {stats.columns} columns · {formatFileSize(stats.sizeBytes)}
+                      </p>
+                    ) : null}
                   </div>
                   <Button
                     type="button"
@@ -127,7 +143,7 @@ export function ChatLibraryPanel() {
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
-              ))
+              )})
             )}
           </div>
         </ScrollArea>

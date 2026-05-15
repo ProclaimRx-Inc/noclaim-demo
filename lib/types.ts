@@ -27,3 +27,13 @@ export interface LibraryManifestEntry {
 export interface LibraryFileResolved extends LibraryManifestEntry {
   content: string
 }
+
+/** Build-time stats from `public/library/library-token-meta.json` (`fileStats` by path). */
+export interface LibraryFileStats {
+  estimatedTokens: number
+  /** Data rows (excluding header) for CSV; line count for other text. */
+  rows: number
+  /** Parsed from header line for CSV. */
+  columns: number
+  sizeBytes: number
+}

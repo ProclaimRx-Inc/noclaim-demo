@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "method": "chars/4 (approx)",
   "byManifestId": {
     "hcp-specialty": 347,
@@ -22,5 +22,61 @@
     "speaker_hcp_activity.csv": 151203,
     "paidsearch_activity.csv": 2936504,
     "paidsocial_activity.csv": 5835259
+  },
+  "fileStats": {
+    "hcp_specialty.csv": {
+      "estimatedTokens": 347,
+      "rows": 54,
+      "columns": 2,
+      "sizeBytes": 1288
+    },
+    "copay_activity.csv": {
+      "estimatedTokens": 967,
+      "rows": 276,
+      "columns": 2,
+      "sizeBytes": 3776
+    },
+    "cost_activity.csv": {
+      "estimatedTokens": 8721,
+      "rows": 1197,
+      "columns": 4,
+      "sizeBytes": 34793
+    },
+    "speaker_activity.csv": {
+      "estimatedTokens": 10385,
+      "rows": 1277,
+      "columns": 4,
+      "sizeBytes": 41444
+    },
+    "website_activity.csv": {
+      "estimatedTokens": 6773,
+      "rows": 801,
+      "columns": 5,
+      "sizeBytes": 26995
+    },
+    "sample_activity.csv": {
+      "estimatedTokens": 68942,
+      "rows": 2894,
+      "columns": 9,
+      "sizeBytes": 275672
+    },
+    "speaker_hcp_activity.csv": {
+      "estimatedTokens": 151203,
+      "rows": 29310,
+      "columns": 3,
+      "sizeBytes": 604707
+    },
+    "paidsearch_activity.csv": {
+      "estimatedTokens": 2936504,
+      "rows": 111264,
+      "columns": 9,
+      "sizeBytes": 11745913
+    },
+    "paidsocial_activity.csv": {
+      "estimatedTokens": 5835259,
+      "rows": 68010,
+      "columns": 24,
+      "sizeBytes": 23340931
+    }
   }
 }

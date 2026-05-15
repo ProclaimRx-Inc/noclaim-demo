@@ -1,4 +1,4 @@
-import type { LibraryFileResolved, LibraryManifestEntry } from "@/lib/types"
+import type { LibraryFileResolved, LibraryFileStats, LibraryManifestEntry } from "@/lib/types"
 
 export async function fetchLibraryManifest(): Promise<LibraryManifestEntry[]> {
   const res = await fetch("/library/manifest.json", { cache: "no-store" })
@@ -16,6 +16,23 @@ export async function fetchLibraryManifest(): Promise<LibraryManifestEntry[]> {
     )
   } catch {
     return []
+  }
+}
+
+type LibraryTokenMetaJson = {
+  version?: number
+  fileStats?: Record<string, LibraryFileStats>
+}
+
+export async function fetchLibraryFileStats(): Promise<Record<string, LibraryFileStats>> {
+  const res = await fetch("/library/library-token-meta.json", { cache: "no-store" })
+  if (!res.ok) return {}
+  try {
+    const data = (await res.json()) as LibraryTokenMetaJson
+    if (!data.fileStats || typeof data.fileStats !== "object") return {}
+    return data.fileStats
+  } catch {
+    return {}
   }
 }
 
