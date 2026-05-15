@@ -11,6 +11,8 @@ export interface ChatSession {
   title: string
   /** When true, `title` was set by the user and is not overwritten from message text. */
   titleManual?: boolean
+  /** When true, this session hit the model context limit; further sends are disabled until history is cleared. */
+  contextLimitBlocked?: boolean
   messages: ChatMessage[]
   updatedAt: string
 }

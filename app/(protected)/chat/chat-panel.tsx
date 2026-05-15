@@ -34,7 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
 import { ChatLibraryPanel } from "@/components/chat-library-panel"
-import type { ChatMessage as ChatMessageModel } from "@/lib/types"
+import type { ChatMessage as ChatMessageModel, ChatSession } from "@/lib/types"
 import {
   createEmptySession,
   deleteSession,
@@ -93,6 +93,7 @@ export function ChatPanel() {
   const [tokenEstimate, setTokenEstimate] = useState<TokenEstimatePayload | null>(null)
   const [lastApiPromptTokens, setLastApiPromptTokens] = useState<number | null>(null)
   const [selectionEpoch, setSelectionEpoch] = useState(0)
+  const [contextLimitBlocked, setContextLimitBlocked] = useState(false)
 
   useEffect(() => {
     setModelId(getStoredLlmModelId())
@@ -155,18 +156,34 @@ export function ChatPanel() {
     return () => window.clearTimeout(t)
   }, [c, modelId, messages, input, selectionEpoch])
 
-  const persistSession = useCallback((chatId: string, nextMessages: ChatMessageModel[]) => {
-    const all = loadSessions()
-    const existing = all.find((s) => s.id === chatId)
-    if (!existing) return
-    const updated = {
-      ...existing,
-      messages: nextMessages,
-      title: existing.titleManual ? existing.title : titleFromMessages(nextMessages),
-      updatedAt: new Date().toISOString(),
-    }
-    saveSessions(upsertSession(all, updated))
-  }, [])
+  const persistSession = useCallback(
+    (
+      chatId: string,
+      nextMessages: ChatMessageModel[],
+      options?: { contextLimitBlocked?: boolean }
+    ) => {
+      const all = loadSessions()
+      const existing = all.find((s) => s.id === chatId)
+      if (!existing) return
+
+      let nextBlocked = !!existing.contextLimitBlocked
+      if (nextMessages.length === 0) {
+        nextBlocked = false
+      } else if (options?.contextLimitBlocked === true) {
+        nextBlocked = true
+      }
+
+      const updated: ChatSession = {
+        ...existing,
+        messages: nextMessages,
+        title: existing.titleManual ? existing.title : titleFromMessages(nextMessages),
+        contextLimitBlocked: nextBlocked,
+        updatedAt: new Date().toISOString(),
+      }
+      saveSessions(upsertSession(all, updated))
+    },
+    []
+  )
 
   useEffect(() => {
     const all = loadSessions()
@@ -202,12 +219,13 @@ export function ChatPanel() {
     const all = loadSessions()
     const s = all.find((x) => x.id === c)
     setMessages(s?.messages ?? [])
+    setContextLimitBlocked(!!s?.contextLimitBlocked)
     setLastApiPromptTokens(null)
   }, [c])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!c || !input.trim()) return
+    if (!c || !input.trim() || contextLimitBlocked) return
 
     const text = input.trim()
     const selectedIds = getSelectedFileIds()
@@ -279,7 +297,12 @@ export function ChatPanel() {
 
       const finalMsgs = [...nextAfterUser, assistantMessage]
       setMessages(finalMsgs)
-      persistSession(c, finalMsgs)
+      if (data.contextWindowExceeded) {
+        persistSession(c, finalMsgs, { contextLimitBlocked: true })
+        setContextLimitBlocked(true)
+      } else {
+        persistSession(c, finalMsgs)
+      }
     } catch {
       const errorMessage: ChatMessageModel = {
         id: crypto.randomUUID(),
@@ -298,6 +321,7 @@ export function ChatPanel() {
     if (!c) return
     setMessages([])
     setLastApiPromptTokens(null)
+    setContextLimitBlocked(false)
     persistSession(c, [])
   }
 
@@ -546,12 +570,19 @@ export function ChatPanel() {
 
           <div className="shrink-0 border-t bg-background px-6 py-4">
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+              {contextLimitBlocked && (
+                <p className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  This chat hit the model context limit. Sending is disabled. Clear the session or start a new chat to
+                  continue.
+                </p>
+              )}
               <div className="flex gap-2">
                 <Textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
                   className="min-h-[80px] resize-none"
+                  disabled={contextLimitBlocked}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
@@ -559,7 +590,12 @@ export function ChatPanel() {
                     }
                   }}
                 />
-                <Button type="submit" size="icon" className="h-[80px] w-[80px]" disabled={isLoading || !c}>
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="h-[80px] w-[80px]"
+                  disabled={isLoading || !c || contextLimitBlocked}
+                >
                   <Send className="h-5 w-5" />
                 </Button>
               </div>

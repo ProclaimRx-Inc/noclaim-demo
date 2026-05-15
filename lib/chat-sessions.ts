@@ -28,7 +28,8 @@ function isChatSession(x: unknown): x is ChatSession {
     typeof o.title === "string" &&
     Array.isArray(o.messages) &&
     typeof o.updatedAt === "string" &&
-    (o.titleManual === undefined || typeof o.titleManual === "boolean")
+    (o.titleManual === undefined || typeof o.titleManual === "boolean") &&
+    (o.contextLimitBlocked === undefined || typeof o.contextLimitBlocked === "boolean")
   )
 }
 
