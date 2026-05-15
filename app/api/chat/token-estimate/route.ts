@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { estimatePromptTokenBundle } from "@/lib/chat-token-estimate-server"
 import { DEFAULT_LLM_MODEL_ID, isAllowedModelId } from "@/lib/llm-models"
-import { resolveLibraryPlaintextFilesByIds } from "@/lib/library-resolve-server"
+import { getLibrarySelectionBlockMessage, resolveLibraryPlaintextFilesByIds } from "@/lib/library-resolve-server"
 
 type ClientMessage = { role: string; content: string }
 
@@ -30,6 +30,12 @@ export async function POST(request: Request) {
   const ids = Array.isArray(body.selectedLibraryIds)
     ? body.selectedLibraryIds.filter((x): x is string => typeof x === "string")
     : []
+
+  const block = getLibrarySelectionBlockMessage(ids)
+  if (block) {
+    return NextResponse.json({ error: block, librarySelectionBlocked: true }, { status: 400 })
+  }
+
   const files = resolveLibraryPlaintextFilesByIds(ids)
 
   const merged: ClientMessage[] = messages

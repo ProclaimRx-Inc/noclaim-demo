@@ -14,9 +14,9 @@ import {
 import { DEFAULT_LLM_MODEL_ID, isAllowedModelId, providerForModel } from "@/lib/llm-models"
 import { readModelSystemPromptBase } from "@/lib/model-system-prompt-server"
 import { isContextWindowExceeded } from "@/lib/openai-context-server"
+import { getLibrarySelectionBlockMessage, resolveLibraryPlaintextFilesByIds } from "@/lib/library-resolve-server"
 
 type ClientMessage = { role: string; content: string }
-type ClientFile = { name: string; plaintext: string }
 
 function contextLimitHit(err: unknown): boolean {
   if (err instanceof APIError && isContextWindowExceeded(err)) return true
@@ -30,14 +30,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  let body: { messages?: ClientMessage[]; files?: ClientFile[]; model?: string }
+  let body: { messages?: ClientMessage[]; model?: string; selectedLibraryIds?: string[] }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const { messages, files } = body
+  const { messages } = body
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages array is required" }, { status: 400 })
   }
@@ -84,7 +84,14 @@ export async function POST(request: Request) {
     )
   }
 
-  const filesList = Array.isArray(files) ? files : []
+  const ids = Array.isArray(body.selectedLibraryIds)
+    ? body.selectedLibraryIds.filter((x): x is string => typeof x === "string")
+    : []
+  const block = getLibrarySelectionBlockMessage(ids)
+  if (block) {
+    return NextResponse.json({ error: block, librarySelectionBlocked: true }, { status: 400 })
+  }
+  const filesList = resolveLibraryPlaintextFilesByIds(ids)
   const modelBase = readModelSystemPromptBase(modelId)
   const system = composeChatSystem(modelBase, filesList)
   const turns = turnsFromClientMessages(messages)

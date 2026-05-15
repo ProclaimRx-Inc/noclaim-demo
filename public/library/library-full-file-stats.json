@@ -1,0 +1,14 @@
+{
+  "paidsearch_activity.csv": {
+    "estimatedTokens": 2936504,
+    "rows": 111264,
+    "columns": 9,
+    "sizeBytes": 11745913
+  },
+  "paidsocial_activity.csv": {
+    "estimatedTokens": 5835259,
+    "rows": 68010,
+    "columns": 24,
+    "sizeBytes": 23340931
+  }
+}

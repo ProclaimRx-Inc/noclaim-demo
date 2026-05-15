@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Send, Download, Trash2, ScrollText } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
 import { ChatLibraryPanel } from "@/components/chat-library-panel"
-import type { ChatMessage as ChatMessageModel, ChatSession } from "@/lib/types"
+import type { ChatMessage as ChatMessageModel, ChatSession, LibraryFileStats, LibraryManifestEntry } from "@/lib/types"
 import {
   createEmptySession,
   deleteSession,
@@ -46,8 +46,11 @@ import {
   titleFromMessages,
   upsertSession,
 } from "@/lib/chat-sessions"
-import { fetchLibraryManifest, resolveLibraryFiles } from "@/lib/library-client"
-import { buildPlaintextForModel } from "@/lib/preview-plaintext"
+import { fetchLibraryFileStats, fetchLibraryManifest } from "@/lib/library-client"
+import {
+  formatBlockedLibrarySelectionMessage,
+  isLibraryFileBlockedByEstimatedTokens,
+} from "@/lib/library-file-token-policy"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { DEFAULT_LLM_MODEL_ID, LLM_MODEL_GROUPS } from "@/lib/llm-models"
 import { getStoredLlmModelId, setStoredLlmModelId } from "@/lib/selected-llm-model"
@@ -94,6 +97,30 @@ export function ChatPanel() {
   const [lastApiPromptTokens, setLastApiPromptTokens] = useState<number | null>(null)
   const [selectionEpoch, setSelectionEpoch] = useState(0)
   const [contextLimitBlocked, setContextLimitBlocked] = useState(false)
+  const [libraryManifest, setLibraryManifest] = useState<LibraryManifestEntry[]>([])
+  const [libraryFileStats, setLibraryFileStats] = useState<Record<string, LibraryFileStats>>({})
+
+  useEffect(() => {
+    void (async () => {
+      const [m, s] = await Promise.all([fetchLibraryManifest(), fetchLibraryFileStats()])
+      setLibraryManifest(m)
+      setLibraryFileStats(s)
+    })()
+  }, [])
+
+  const librarySelectionBlockMessage = useMemo(() => {
+    const ids = getSelectedFileIds()
+    if (ids.length === 0 || libraryManifest.length === 0) return null
+    const byId = new Map(libraryManifest.map((e) => [e.id, e]))
+    const names: string[] = []
+    for (const id of ids) {
+      const entry = byId.get(id)
+      if (!entry) continue
+      if (isLibraryFileBlockedByEstimatedTokens(libraryFileStats[entry.path])) names.push(entry.name)
+    }
+    if (names.length === 0) return null
+    return formatBlockedLibrarySelectionMessage(names)
+  }, [selectionEpoch, libraryManifest, libraryFileStats])
 
   useEffect(() => {
     setModelId(getStoredLlmModelId())
@@ -225,13 +252,14 @@ export function ChatPanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!c || !input.trim() || contextLimitBlocked) return
+    if (!c || !input.trim() || contextLimitBlocked || librarySelectionBlockMessage) return
 
     const text = input.trim()
     const selectedIds = getSelectedFileIds()
-    const manifest = await fetchLibraryManifest()
-    const resolved = await resolveLibraryFiles(selectedIds, manifest)
-    const attachedNames = resolved.map((f) => f.name)
+    const byId = new Map(libraryManifest.map((e) => [e.id, e]))
+    const attachedNames = selectedIds
+      .map((id) => byId.get(id)?.name)
+      .filter((n): n is string => typeof n === "string")
 
     const userMessage: ChatMessageModel = {
       id: crypto.randomUUID(),
@@ -248,13 +276,6 @@ export function ChatPanel() {
     setLastApiPromptTokens(null)
 
     const historyForApi = nextAfterUser.map(({ role, content }) => ({ role, content }))
-    const filesPayload =
-      resolved.length > 0
-        ? resolved.map((f) => ({
-            name: f.name,
-            plaintext: buildPlaintextForModel(f),
-          }))
-        : undefined
 
     try {
       const response = await fetch("/api/chat", {
@@ -262,8 +283,8 @@ export function ChatPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: historyForApi,
-          files: filesPayload,
           model: modelId,
+          selectedLibraryIds: selectedIds,
         }),
       })
 
@@ -337,24 +358,21 @@ export function ChatPanel() {
 
   const openSystemPromptPreview = async () => {
     setSystemPromptOpen(true)
+    if (librarySelectionBlockMessage) {
+      setSystemPromptLoading(false)
+      setSystemPromptError(librarySelectionBlockMessage)
+      setSystemPromptText("")
+      return
+    }
     setSystemPromptLoading(true)
     setSystemPromptError(null)
     setSystemPromptText("")
     try {
       const selectedIds = getSelectedFileIds()
-      const manifest = await fetchLibraryManifest()
-      const resolved = await resolveLibraryFiles(selectedIds, manifest)
-      const filesPayload =
-        resolved.length > 0
-          ? resolved.map((f) => ({
-              name: f.name,
-              plaintext: buildPlaintextForModel(f),
-            }))
-          : undefined
       const response = await fetch("/api/chat/system-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: modelId, files: filesPayload }),
+        body: JSON.stringify({ model: modelId, selectedLibraryIds: selectedIds }),
       })
       const data = (await response.json()) as { system?: string; error?: string }
       if (!response.ok) {
@@ -438,6 +456,7 @@ export function ChatPanel() {
                   variant="outline"
                   size="sm"
                   className="h-8 shrink-0 gap-1 px-2"
+                  disabled={!!librarySelectionBlockMessage}
                   title="Preview the full system string for the selected model and library files"
                   onClick={() => void openSystemPromptPreview()}
                 >
@@ -570,6 +589,11 @@ export function ChatPanel() {
 
           <div className="shrink-0 border-t bg-background px-6 py-4">
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+              {librarySelectionBlockMessage && (
+                <p className="mb-3 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {librarySelectionBlockMessage}
+                </p>
+              )}
               {contextLimitBlocked && (
                 <p className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                   This chat hit the model context limit. Sending is disabled. Clear the session or start a new chat to
@@ -582,11 +606,11 @@ export function ChatPanel() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your message..."
                   className="min-h-[80px] resize-none"
-                  disabled={contextLimitBlocked}
+                  disabled={contextLimitBlocked || !!librarySelectionBlockMessage}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
-                      void handleSubmit(e)
+                      if (!librarySelectionBlockMessage) void handleSubmit(e)
                     }
                   }}
                 />
@@ -594,7 +618,7 @@ export function ChatPanel() {
                   type="submit"
                   size="icon"
                   className="h-[80px] w-[80px]"
-                  disabled={isLoading || !c || contextLimitBlocked}
+                  disabled={isLoading || !c || contextLimitBlocked || !!librarySelectionBlockMessage}
                 >
                   <Send className="h-5 w-5" />
                 </Button>

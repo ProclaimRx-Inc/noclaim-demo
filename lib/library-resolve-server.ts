@@ -1,5 +1,10 @@
 import { existsSync, readFileSync } from "fs"
 import { join, normalize, relative, resolve } from "path"
+import {
+  formatBlockedLibrarySelectionMessage,
+  isLibraryFileBlockedByEstimatedTokens,
+} from "@/lib/library-file-token-policy"
+import { readLibraryFileStatsFromDisk } from "@/lib/library-token-meta-server"
 import type { LibraryManifestEntry } from "@/lib/types"
 import { buildPlaintextForLibraryFile } from "@/lib/preview-plaintext"
 
@@ -31,6 +36,21 @@ export function readLibraryManifestFromDisk(): LibraryManifestEntry[] {
   } catch {
     return []
   }
+}
+
+export function getLibrarySelectionBlockMessage(ids: string[]): string | null {
+  if (!Array.isArray(ids) || ids.length === 0) return null
+  const manifest = readLibraryManifestFromDisk()
+  const stats = readLibraryFileStatsFromDisk()
+  const byId = new Map(manifest.map((e) => [e.id, e]))
+  const names: string[] = []
+  for (const id of ids) {
+    const entry = byId.get(id)
+    if (!entry) continue
+    if (isLibraryFileBlockedByEstimatedTokens(stats[entry.path])) names.push(entry.name)
+  }
+  if (names.length === 0) return null
+  return formatBlockedLibrarySelectionMessage(names)
 }
 
 export function resolveLibraryPlaintextFilesByIds(ids: string[]): { name: string; plaintext: string }[] {

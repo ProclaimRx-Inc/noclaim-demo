@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { Eye, FileText } from "lucide-react"
+import { Eye, FileText, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -16,6 +16,8 @@ import { LibraryMarkdownPreview } from "@/components/library-markdown-preview"
 import { fetchLibraryFileStats, fetchLibraryFileText, fetchLibraryManifest } from "@/lib/library-client"
 import { buildLibraryPreviewMarkdown } from "@/lib/library-preview-markdown"
 import type { LibraryFileResolved, LibraryFileStats, LibraryManifestEntry } from "@/lib/types"
+import { isLibraryFileBlockedByEstimatedTokens } from "@/lib/library-file-token-policy"
+import { cn } from "@/lib/utils"
 import {
   clearSelectedFileIds,
   emitLibrarySelectionChanged,
@@ -66,8 +68,13 @@ export function ChatLibraryPanel() {
   }
 
   const onSelectAll = () => {
-    selectAllFileIds(allIds)
-    setSelectedIds([...allIds])
+    const allowed = allIds.filter((id) => {
+      const entry = manifest.find((e) => e.id === id)
+      if (!entry) return false
+      return !isLibraryFileBlockedByEstimatedTokens(fileStats[entry.path])
+    })
+    selectAllFileIds(allowed)
+    setSelectedIds(allowed)
     emitLibrarySelectionChanged()
   }
 
@@ -107,28 +114,52 @@ export function ChatLibraryPanel() {
             ) : (
               manifest.map((entry) => {
                 const stats = fileStats[entry.path]
+                const selected = selectedIds.includes(entry.id)
+                const unacceptable = isLibraryFileBlockedByEstimatedTokens(stats)
                 return (
                 <div
                   key={entry.id}
-                  className="flex items-start gap-2 rounded-md border border-transparent bg-background/60 px-2 py-2 hover:border-border"
+                  className={cn(
+                    "flex items-start gap-2 rounded-md border px-2 py-2",
+                    unacceptable &&
+                      !selected &&
+                      "border-red-200/90 bg-red-50/90 dark:border-red-900/60 dark:bg-red-950/30",
+                    unacceptable &&
+                      selected &&
+                      "border-red-600 bg-red-600/15 dark:border-red-500 dark:bg-red-950/50",
+                    !unacceptable && "border-transparent bg-background/60 hover:border-border"
+                  )}
                 >
                   <Checkbox
                     id={`lib-${entry.id}`}
-                    checked={selectedIds.includes(entry.id)}
+                    checked={selected}
                     onCheckedChange={() => toggle(entry.id)}
                     className="mt-0.5"
                     aria-label={`Include ${entry.name}`}
                   />
                   <div className="min-w-0 flex-1">
-                    <label htmlFor={`lib-${entry.id}`} className="cursor-pointer text-sm font-medium leading-snug">
-                      {entry.name}
-                    </label>
+                    <div className="flex items-start gap-1.5">
+                      {unacceptable ? (
+                        <AlertTriangle
+                          className={cn(
+                            "mt-0.5 h-4 w-4 shrink-0",
+                            selected ? "text-red-700 dark:text-red-400" : "text-red-500/90 dark:text-red-400/90"
+                          )}
+                          aria-hidden
+                        />
+                      ) : null}
+                      <label htmlFor={`lib-${entry.id}`} className="cursor-pointer text-sm font-medium leading-snug">
+                        {entry.name}
+                      </label>
+                    </div>
                     <p className="truncate font-mono text-[0.65rem] text-muted-foreground">{entry.path}</p>
                     {stats ? (
-                      <p className="mt-0.5 text-[0.65rem] leading-snug text-muted-foreground tabular-nums">
-                        ~{stats.estimatedTokens.toLocaleString()} tokens · {stats.rows.toLocaleString()} rows ·{" "}
-                        {stats.columns} columns · {formatFileSize(stats.sizeBytes)}
-                      </p>
+                      <div className="mt-1 space-y-0.5 text-[0.65rem] leading-snug text-muted-foreground tabular-nums">
+                        <p>~{stats.estimatedTokens.toLocaleString()} tokens (estimate)</p>
+                        <p>{stats.rows.toLocaleString()} rows</p>
+                        <p>{stats.columns} columns</p>
+                        <p>{formatFileSize(stats.sizeBytes)}</p>
+                      </div>
                     ) : null}
                   </div>
                   <Button

@@ -2,13 +2,19 @@
 /**
  * Precompute approximate token counts and CSV shape / file size for each library file.
  * Token count matches the plaintext shape used by the chat API.
+ * Files over ~1M estimated tokens are truncated on disk to the header plus 100 data rows;
+ * display stats stay frozen in library-full-file-stats.json so library-token-meta.json
+ * still reflects the original full file.
  * Writes public/library/library-token-meta.json. Run via package.json prebuild.
  */
 const fs = require("fs")
 const path = require("path")
 
-const root = path.resolve(__dirname, "..")
-const libDir = path.join(root, "public", "library")
+const libDir = path.join(path.resolve(__dirname, ".."), "public", "library")
+const OVERRIDES_PATH = path.join(libDir, "library-full-file-stats.json")
+/** Same threshold as lib/library-file-token-policy.ts */
+const TOKEN_TRUNCATE_THRESHOLD = 1_000_000
+const MAX_CSV_DATA_ROWS = 100
 
 function estimateTokensRough(text) {
   if (!text || !String(text).trim()) return 0
@@ -22,6 +28,28 @@ Path: ${relPath}
 --- CONTENT ---
 ${content}
 --- END CONTENT ---`
+}
+
+function loadOverrides() {
+  if (!fs.existsSync(OVERRIDES_PATH)) return {}
+  try {
+    const j = JSON.parse(fs.readFileSync(OVERRIDES_PATH, "utf8"))
+    return typeof j === "object" && j !== null && !Array.isArray(j) ? j : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveOverrides(obj) {
+  fs.writeFileSync(OVERRIDES_PATH, JSON.stringify(obj, null, 2) + "\n")
+}
+
+/** Return new content or null if no truncation needed. */
+function truncateCsvToMaxDataRows(content, maxDataRows) {
+  const lines = content.split(/\r?\n/)
+  if (lines.length <= maxDataRows + 1) return null
+  const kept = lines.slice(0, maxDataRows + 1)
+  return kept.join("\n") + "\n"
 }
 
 /** RFC-style first line: commas separate fields; `"` toggles quoting; `""` inside quotes. */
@@ -87,9 +115,20 @@ function main() {
     console.warn("manifest.json is not an array; skipping")
     return
   }
+
+  const manifestPaths = new Set(
+    manifest.map((e) => (e && typeof e.path === "string" ? e.path : null)).filter(Boolean)
+  )
+  const overrides = loadOverrides()
+  for (const k of Object.keys(overrides)) {
+    if (!manifestPaths.has(k)) delete overrides[k]
+  }
+  const overridesAfterPrune = JSON.stringify(overrides)
+
   const byManifestId = {}
   const byFilePath = {}
   const fileStats = {}
+
   for (const e of manifest) {
     if (!e || typeof e.path !== "string" || typeof e.id !== "string" || typeof e.name !== "string") continue
     if (e.path.includes("..")) continue
@@ -99,15 +138,46 @@ function main() {
       console.warn("Missing file, skipping:", e.path)
       continue
     }
+
+    if (overrides[e.path]) {
+      const o = overrides[e.path]
+      byManifestId[e.id] = o.estimatedTokens
+      byFilePath[e.path] = o.estimatedTokens
+      fileStats[e.path] = {
+        estimatedTokens: o.estimatedTokens,
+        rows: o.rows,
+        columns: o.columns,
+        sizeBytes: o.sizeBytes,
+      }
+      continue
+    }
+
     const content = fs.readFileSync(abs, "utf8")
+    const sizeBytes = fs.statSync(abs).size
+    const { rows, columns } = fileStatsForContent(abs, content)
     const pt = buildPlaintext(e.name, e.path, content)
     const estimatedTokens = estimateTokensRough(pt)
-    const { rows, columns } = fileStatsForContent(abs, content)
-    const sizeBytes = fs.statSync(abs).size
-    byManifestId[e.id] = estimatedTokens
-    byFilePath[e.path] = estimatedTokens
-    fileStats[e.path] = { estimatedTokens, rows, columns, sizeBytes }
+    const fullStats = { estimatedTokens, rows, columns, sizeBytes }
+
+    if (estimatedTokens > TOKEN_TRUNCATE_THRESHOLD && e.path.toLowerCase().endsWith(".csv")) {
+      const truncated = truncateCsvToMaxDataRows(content, MAX_CSV_DATA_ROWS)
+      if (truncated !== null) {
+        fs.writeFileSync(abs, truncated, "utf8")
+        overrides[e.path] = fullStats
+        console.warn("Truncated oversized library CSV to", MAX_CSV_DATA_ROWS, "data rows:", e.path)
+      }
+    }
+
+    byManifestId[e.id] = fullStats.estimatedTokens
+    byFilePath[e.path] = fullStats.estimatedTokens
+    fileStats[e.path] = fullStats
   }
+
+  if (JSON.stringify(overrides) !== overridesAfterPrune) {
+    saveOverrides(overrides)
+    console.log("Wrote public/library/library-full-file-stats.json")
+  }
+
   const out = {
     version: 2,
     method: "chars/4 (approx)",
