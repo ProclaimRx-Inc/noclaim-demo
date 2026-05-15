@@ -4,15 +4,15 @@
   "byManifestId": {
     "hcp-specialty": 347,
     "copay-activity": 967,
-    "cost-activity": 16937,
-    "speaker-activity": 18158,
-    "website-activity": 11555
+    "cost-activity": 9619,
+    "speaker-activity": 10385,
+    "website-activity": 6773
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
     "copay_activity.csv": 967,
-    "cost_activity.csv": 16937,
-    "speaker_activity.csv": 18158,
-    "website_activity.csv": 11555
+    "cost_activity.csv": 9619,
+    "speaker_activity.csv": 10385,
+    "website_activity.csv": 6773
   }
 }
