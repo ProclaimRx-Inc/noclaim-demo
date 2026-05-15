@@ -8,7 +8,7 @@
     "cost-activity": 8721,
     "speaker-activity": 10385,
     "website-activity": 6773,
-    "email-activity": 8847790,
+    "email-activity": 8021250,
     "sample-activity": 68942,
     "speaker-hcp-activity": 151203,
     "paidsearch-activity": 2936504,
@@ -21,7 +21,7 @@
     "cost_activity.csv": 8721,
     "speaker_activity.csv": 10385,
     "website_activity.csv": 6773,
-    "email_activity.csv": 8847790,
+    "email_activity.csv": 8021250,
     "sample_activity.csv": 68942,
     "speaker_hcp_activity.csv": 151203,
     "paidsearch_activity.csv": 2936504,
@@ -65,10 +65,10 @@
       "sizeBytes": 26995
     },
     "email_activity.csv": {
-      "estimatedTokens": 8847790,
+      "estimatedTokens": 8021250,
       "rows": 87949,
-      "columns": 24,
-      "sizeBytes": 35391178
+      "columns": 16,
+      "sizeBytes": 32085018
     },
     "sample_activity.csv": {
       "estimatedTokens": 68942,
