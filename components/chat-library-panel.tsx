@@ -71,7 +71,7 @@ export function ChatLibraryPanel() {
 
   return (
     <>
-      <aside className="flex max-h-[40vh] w-full shrink-0 flex-col border-t border-border bg-muted/20 md:max-h-none md:w-80 md:border-t-0 md:border-l">
+      <aside className="flex min-h-0 w-full max-h-[40vh] shrink-0 flex-col border-t border-border bg-muted/20 md:h-full md:max-h-none md:w-80 md:border-t-0 md:border-l">
         <div className="border-b px-3 py-3">
           <h2 className="text-sm font-semibold">Library</h2>
           <p className="mt-1 text-xs text-muted-foreground">Checked items are sent with each message.</p>

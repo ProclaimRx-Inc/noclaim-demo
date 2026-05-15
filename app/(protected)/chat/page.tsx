@@ -8,9 +8,7 @@ export default function ChatPage() {
         <div className="flex min-h-0 flex-1 items-center justify-center text-muted-foreground">Loading chat…</div>
       }
     >
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <ChatPanel />
-      </div>
+      <ChatPanel />
     </Suspense>
   )
 }

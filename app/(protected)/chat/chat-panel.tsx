@@ -369,10 +369,10 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <header className="sticky top-0 z-20 shrink-0 border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:flex-row">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="shrink-0 border-b bg-background px-6 py-4">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
               <div className="min-w-0">
                 <h1 className="text-xl font-semibold">Chat</h1>
@@ -515,83 +515,85 @@ export function ChatPanel() {
             </div>
           </header>
 
-        <div className="min-h-0 flex-1 px-6 py-6">
-          <div className="mx-auto max-w-3xl">
-            {messages.length === 0 ? (
-              <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
-                <div className="rounded-full bg-muted p-4">
-                  <Send className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h2 className="mt-4 text-lg font-medium">Start a conversation</h2>
-                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                  Send a message to begin. Use the library on the right to include files with each request.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
-                ))}
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
-                    <span className="text-sm">Thinking...</span>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+              <div className="mx-auto max-w-3xl">
+              {messages.length === 0 ? (
+                <div className="flex min-h-[min(50vh,24rem)] flex-col items-center justify-center text-center">
+                  <div className="rounded-full bg-muted p-4">
+                    <Send className="h-8 w-8 text-muted-foreground" />
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        </div>
-
-        <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
-          <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">
-            <DialogHeader className="shrink-0 border-b pb-4 text-left">
-              <DialogTitle>System prompt (debug)</DialogTitle>
-              <DialogDescription className="text-left">
-                Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
-                <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
-                {systemPromptLoading ? " — loading…" : ""}, including the markdown hint and any checked library files.
-                Per-model text lives under <code className="rounded bg-muted px-0.5 text-xs">content/system-prompts/</code>
-                .
-              </DialogDescription>
-            </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto py-3">
-              {systemPromptError ? (
-                <p className="text-sm text-destructive">{systemPromptError}</p>
+                  <h2 className="mt-4 text-lg font-medium">Start a conversation</h2>
+                  <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                    Send a message to begin. Use the library on the right to include files with each request.
+                  </p>
+                </div>
               ) : (
-                <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-                  {systemPromptLoading ? "…" : systemPromptText}
-                </pre>
+                <div className="space-y-6">
+                  {messages.map((message) => (
+                    <ChatMessage key={message.id} message={message} />
+                  ))}
+                  {isLoading && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
+                      <span className="text-sm">Thinking...</span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
-
-        <div className="shrink-0 border-t px-6 py-4">
-        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
-          <div className="flex gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="min-h-[80px] resize-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  void handleSubmit(e)
-                }
-              }}
-            />
-            <Button type="submit" size="icon" className="h-[80px] w-[80px]" disabled={isLoading || !c}>
-              <Send className="h-5 w-5" />
-            </Button>
           </div>
-        </form>
+
+          <div className="shrink-0 border-t bg-background px-6 py-4">
+            <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+              <div className="flex gap-2">
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className="min-h-[80px] resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      void handleSubmit(e)
+                    }
+                  }}
+                />
+                <Button type="submit" size="icon" className="h-[80px] w-[80px]" disabled={isLoading || !c}>
+                  <Send className="h-5 w-5" />
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
       <ChatLibraryPanel />
     </div>
+
+    <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
+      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">
+        <DialogHeader className="shrink-0 border-b pb-4 text-left">
+          <DialogTitle>System prompt (debug)</DialogTitle>
+          <DialogDescription className="text-left">
+            Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
+            <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
+            {systemPromptLoading ? " — loading…" : ""}, including the markdown hint and any checked library files.
+            Per-model text lives under <code className="rounded bg-muted px-0.5 text-xs">content/system-prompts/</code>
+            .
+          </DialogDescription>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto py-3">
+          {systemPromptError ? (
+            <p className="text-sm text-destructive">{systemPromptError}</p>
+          ) : (
+            <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
+              {systemPromptLoading ? "…" : systemPromptText}
+            </pre>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
