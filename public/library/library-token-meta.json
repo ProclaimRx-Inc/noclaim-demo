@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "method": "chars/4 (approx)",
+  "byManifestId": {
+    "hcp-specialty": 347,
+    "copay-activity": 967
+  },
+  "byFilePath": {
+    "hcp_specialty.csv": 347,
+    "copay_activity.csv": 967
+  }
+}

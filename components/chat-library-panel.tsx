@@ -18,6 +18,7 @@ import { buildLibraryPreviewMarkdown } from "@/lib/library-preview-markdown"
 import type { LibraryFileResolved, LibraryManifestEntry } from "@/lib/types"
 import {
   clearSelectedFileIds,
+  emitLibrarySelectionChanged,
   getSelectedFileIds,
   selectAllFileIds,
   toggleSelectedFileId,
@@ -53,16 +54,19 @@ export function ChatLibraryPanel() {
   const toggle = (id: string) => {
     const next = toggleSelectedFileId(id)
     setSelectedIds(next)
+    emitLibrarySelectionChanged()
   }
 
   const onSelectAll = () => {
     selectAllFileIds(allIds)
     setSelectedIds([...allIds])
+    emitLibrarySelectionChanged()
   }
 
   const onUnselectAll = () => {
     clearSelectedFileIds()
     setSelectedIds([])
+    emitLibrarySelectionChanged()
   }
 
   return (

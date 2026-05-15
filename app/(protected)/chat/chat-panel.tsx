@@ -51,7 +51,28 @@ import { buildPlaintextForModel } from "@/lib/preview-plaintext"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { DEFAULT_LLM_MODEL_ID, LLM_MODEL_GROUPS } from "@/lib/llm-models"
 import { getStoredLlmModelId, setStoredLlmModelId } from "@/lib/selected-llm-model"
-import { getSelectedFileIds } from "@/lib/selected-files"
+import { getSelectedFileIds, LIBRARY_SELECTION_CHANGED_EVENT } from "@/lib/selected-files"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+
+type TokenEstimatePayload = {
+  estimatedPromptTokens: number
+  contextWindowTokens: number
+  breakdown: { system: number; messages: number; filesRaw: number }
+}
+
+type ChatApiJson = {
+  response?: string
+  error?: string
+  contextWindowExceeded?: boolean
+  usage?: { promptTokens?: number; completionTokens?: number }
+  estimatedPromptTokens?: number
+  contextWindowTokens?: number
+}
+
+function contextOverflowExtra(est?: number, lim?: number): string {
+  if (typeof est !== "number" || typeof lim !== "number" || lim <= 0) return ""
+  return `\n\nRough size before this send was about ${est.toLocaleString()} tokens (estimate). This model’s context window is about ${lim.toLocaleString()} tokens. Remove older messages or uncheck library files, then try again.`
+}
 
 export function ChatPanel() {
   const router = useRouter()
@@ -67,10 +88,52 @@ export function ChatPanel() {
   const [systemPromptLoading, setSystemPromptLoading] = useState(false)
   const [systemPromptError, setSystemPromptError] = useState<string | null>(null)
   const [modelId, setModelId] = useState(DEFAULT_LLM_MODEL_ID)
+  const [tokenEstimate, setTokenEstimate] = useState<TokenEstimatePayload | null>(null)
+  const [lastApiPromptTokens, setLastApiPromptTokens] = useState<number | null>(null)
+  const [selectionEpoch, setSelectionEpoch] = useState(0)
 
   useEffect(() => {
     setModelId(getStoredLlmModelId())
   }, [])
+
+  useEffect(() => {
+    const onLib = () => setSelectionEpoch((n) => n + 1)
+    window.addEventListener(LIBRARY_SELECTION_CHANGED_EVENT, onLib)
+    return () => window.removeEventListener(LIBRARY_SELECTION_CHANGED_EVENT, onLib)
+  }, [])
+
+  useEffect(() => {
+    if (!c) {
+      setTokenEstimate(null)
+      return
+    }
+    const t = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const ids = getSelectedFileIds()
+          const res = await fetch("/api/chat/token-estimate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: modelId,
+              messages: messages.map(({ role, content }) => ({ role, content })),
+              pendingUserText: input,
+              selectedLibraryIds: ids,
+            }),
+          })
+          if (!res.ok) {
+            setTokenEstimate(null)
+            return
+          }
+          const data = (await res.json()) as TokenEstimatePayload
+          setTokenEstimate(data)
+        } catch {
+          setTokenEstimate(null)
+        }
+      })()
+    }, 400)
+    return () => window.clearTimeout(t)
+  }, [c, modelId, messages, input, selectionEpoch])
 
   const persistSession = useCallback((chatId: string, nextMessages: ChatMessageModel[]) => {
     const all = loadSessions()
@@ -119,6 +182,7 @@ export function ChatPanel() {
     const all = loadSessions()
     const s = all.find((x) => x.id === c)
     setMessages(s?.messages ?? [])
+    setLastApiPromptTokens(null)
   }, [c])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,6 +207,7 @@ export function ChatPanel() {
     persistSession(c, nextAfterUser)
     setInput("")
     setIsLoading(true)
+    setLastApiPromptTokens(null)
 
     const historyForApi = nextAfterUser.map(({ role, content }) => ({ role, content }))
     const filesPayload =
@@ -164,25 +229,26 @@ export function ChatPanel() {
         }),
       })
 
-      let data: {
-        response?: string
-        error?: string
-        contextWindowExceeded?: boolean
-      } = {}
+      let data: ChatApiJson = {}
       try {
-        data = (await response.json()) as typeof data
+        data = (await response.json()) as ChatApiJson
       } catch {
         /* non-JSON body */
       }
 
       let assistantText: string
       if (data.contextWindowExceeded) {
-        assistantText = data.error ?? CONTEXT_WINDOW_USER_MESSAGE
+        assistantText =
+          (data.error ?? CONTEXT_WINDOW_USER_MESSAGE) +
+          contextOverflowExtra(data.estimatedPromptTokens, data.contextWindowTokens)
       } else if (!response.ok) {
         assistantText = data.error ? `Error: ${data.error}` : `Request failed (${response.status}).`
       } else {
         assistantText =
           data.response || (data.error ? `Error: ${data.error}` : "Sorry, I could not process your request.")
+        if (typeof data.usage?.promptTokens === "number") {
+          setLastApiPromptTokens(data.usage.promptTokens)
+        }
       }
 
       const assistantMessage: ChatMessageModel = {
@@ -211,6 +277,7 @@ export function ChatPanel() {
   const clearHistory = () => {
     if (!c) return
     setMessages([])
+    setLastApiPromptTokens(null)
     persistSession(c, [])
   }
 
@@ -221,6 +288,7 @@ export function ChatPanel() {
     deleteSession(id)
     navigateAfterChatDeleted(id, id, router)
     setMessages([])
+    setLastApiPromptTokens(null)
   }
 
   const openSystemPromptPreview = async () => {
@@ -283,7 +351,8 @@ export function ChatPanel() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b px-6 py-4">
+        <header className="flex shrink-0 flex-col gap-0 border-b px-6 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold">Chat</h1>
             {c && (
@@ -374,6 +443,41 @@ export function ChatPanel() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            </div>
+          )}
+          </div>
+          {c && (tokenEstimate !== null || lastApiPromptTokens !== null) && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 text-xs text-muted-foreground">
+              {tokenEstimate && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex max-w-full items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-0.5 font-mono text-[11px] text-foreground tabular-nums hover:bg-muted/80"
+                    >
+                      Est. next send ≈ {tokenEstimate.estimatedPromptTokens.toLocaleString()} /{" "}
+                      {tokenEstimate.contextWindowTokens.toLocaleString()} tok
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs text-left font-sans font-normal normal-case">
+                    <p className="font-medium text-background">Rough prompt size (chars ÷ 4)</p>
+                    <p className="mt-1 text-background/90">
+                      System (includes library in prompt): {tokenEstimate.breakdown.system.toLocaleString()}
+                    </p>
+                    <p className="text-background/90">
+                      Messages (incl. draft): {tokenEstimate.breakdown.messages.toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-background/80">
+                      Provider token counts appear after a successful send when the API returns usage.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {lastApiPromptTokens !== null && (
+                <span className="tabular-nums text-foreground/90">
+                  Last request (API): {lastApiPromptTokens.toLocaleString()} prompt tok
+                </span>
+              )}
             </div>
           )}
         </header>

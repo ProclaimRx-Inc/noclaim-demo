@@ -1,0 +1,14 @@
+---
+description: After meaningful changes, push to origin and confirm Vercel deployment health
+alwaysApply: true
+---
+
+# Deploy and Vercel
+
+When you finish a task that changes app behavior, configuration, or assets users rely on in production:
+
+1. **Commit** with a clear message, then **`git push`** to `origin` (usually `main`) so the Git integration triggers a Vercel build.
+2. **Verify the deployment** using the Vercel MCP (e.g. list recent deployments for this project, open build logs if the latest deploy failed or is still building). Do not assume success without checking when the user cares about production.
+3. If push or deploy fails, report the error and fix or hand off with concrete next steps.
+
+If there is nothing new to deploy (docs-only, local experiment), say so instead of pushing an empty or noisy commit.

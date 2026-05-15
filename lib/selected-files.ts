@@ -31,3 +31,11 @@ export function selectAllFileIds(ids: string[]): void {
 export function clearSelectedFileIds(): void {
   setSelectedFileIds([])
 }
+
+/** Fired when the user checks/unchecks library files (listen on `window` in the chat UI). */
+export const LIBRARY_SELECTION_CHANGED_EVENT = "noclaim-library-selection-changed"
+
+export function emitLibrarySelectionChanged(): void {
+  if (typeof window === "undefined") return
+  window.dispatchEvent(new CustomEvent(LIBRARY_SELECTION_CHANGED_EVENT))
+}

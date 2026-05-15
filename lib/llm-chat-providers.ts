@@ -49,12 +49,16 @@ export function turnsFromClientMessages(
   return turns
 }
 
+export type LlmCompletionUsage = { promptTokens: number; completionTokens: number }
+
+export type LlmCompletionResult = { text: string; usage?: LlmCompletionUsage }
+
 export async function completeOpenAI(
   apiKey: string,
   model: string,
   system: string,
   turns: ChatTurn[]
-): Promise<string> {
+): Promise<LlmCompletionResult> {
   const apiMessages: ChatCompletionMessageParam[] = [{ role: "system", content: system }]
   for (const t of turns) {
     apiMessages.push({ role: t.role, content: t.content })
@@ -68,7 +72,12 @@ export async function completeOpenAI(
   const text =
     (typeof choice?.content === "string" ? choice.content : null)?.trim() ||
     "The model returned an empty reply."
-  return text
+  const u = completion.usage
+  const usage: LlmCompletionUsage | undefined =
+    u && typeof u.prompt_tokens === "number" && typeof u.completion_tokens === "number"
+      ? { promptTokens: u.prompt_tokens, completionTokens: u.completion_tokens }
+      : undefined
+  return { text, usage }
 }
 
 export async function completeAnthropic(
@@ -76,7 +85,7 @@ export async function completeAnthropic(
   model: string,
   system: string,
   turns: ChatTurn[]
-): Promise<string> {
+): Promise<LlmCompletionResult> {
   const client = new Anthropic({ apiKey })
   const res = await client.messages.create({
     model,
@@ -95,7 +104,12 @@ export async function completeAnthropic(
     }
   }
   text = text.trim()
-  return text || "The model returned an empty reply."
+  const u = res.usage
+  const usage: LlmCompletionUsage | undefined =
+    u && typeof u.input_tokens === "number" && typeof u.output_tokens === "number"
+      ? { promptTokens: u.input_tokens, completionTokens: u.output_tokens }
+      : undefined
+  return { text: text || "The model returned an empty reply.", usage }
 }
 
 export async function completeGemini(
@@ -103,7 +117,7 @@ export async function completeGemini(
   modelId: string,
   system: string,
   turns: ChatTurn[]
-): Promise<string> {
+): Promise<LlmCompletionResult> {
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
     model: modelId,
@@ -127,5 +141,14 @@ export async function completeGemini(
   const chat = model.startChat({ history })
   const result = await chat.sendMessage(last.content)
   const text = result.response.text()?.trim() || "The model returned an empty reply."
-  return text
+  const meta = result.response.usageMetadata
+  const usage: LlmCompletionUsage | undefined =
+    meta && typeof meta.promptTokenCount === "number"
+      ? {
+          promptTokens: meta.promptTokenCount,
+          completionTokens:
+            typeof meta.candidatesTokenCount === "number" ? meta.candidatesTokenCount : 0,
+        }
+      : undefined
+  return { text, usage }
 }

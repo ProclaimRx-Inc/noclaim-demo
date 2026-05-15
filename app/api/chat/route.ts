@@ -1,6 +1,7 @@
 import { APIError } from "openai"
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
+import { estimatePromptTokenBundle } from "@/lib/chat-token-estimate-server"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { isLikelyContextLimitMessage } from "@/lib/is-context-limit-message"
 import {
@@ -83,29 +84,39 @@ export async function POST(request: Request) {
     )
   }
 
+  const filesList = Array.isArray(files) ? files : []
   const modelBase = readModelSystemPromptBase(modelId)
-  const system = composeChatSystem(modelBase, Array.isArray(files) ? files : [])
+  const system = composeChatSystem(modelBase, filesList)
   const turns = turnsFromClientMessages(messages)
   if (turns.length === 0) {
     return NextResponse.json({ error: "No valid messages" }, { status: 400 })
   }
 
+  const bundle = estimatePromptTokenBundle(modelId, messages, filesList)
+
   try {
-    let text: string
+    let result
     if (provider === "openai") {
-      text = await completeOpenAI(openaiKey!, modelId, system, turns)
+      result = await completeOpenAI(openaiKey!, modelId, system, turns)
     } else if (provider === "anthropic") {
-      text = await completeAnthropic(anthropicKey!, modelId, system, turns)
+      result = await completeAnthropic(anthropicKey!, modelId, system, turns)
     } else {
-      text = await completeGemini(geminiKey!, modelId, system, turns)
+      result = await completeGemini(geminiKey!, modelId, system, turns)
     }
-    return NextResponse.json({ response: text })
+    return NextResponse.json({
+      response: result.text,
+      usage: result.usage,
+      estimatedPromptTokens: bundle.estimatedPromptTokens,
+      contextWindowTokens: bundle.contextWindowTokens,
+    })
   } catch (err: unknown) {
     if (contextLimitHit(err)) {
       return NextResponse.json(
         {
           error: CONTEXT_WINDOW_USER_MESSAGE,
           contextWindowExceeded: true,
+          estimatedPromptTokens: bundle.estimatedPromptTokens,
+          contextWindowTokens: bundle.contextWindowTokens,
         },
         { status: 400 }
       )
