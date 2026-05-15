@@ -9,7 +9,7 @@
     "website-activity": 6773,
     "sample-activity": 68942,
     "speaker-hcp-activity": 151203,
-    "paidsearch-activity": 3600625
+    "paidsearch-activity": 2936504
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
@@ -19,6 +19,6 @@
     "website_activity.csv": 6773,
     "sample_activity.csv": 68942,
     "speaker_hcp_activity.csv": 151203,
-    "paidsearch_activity.csv": 3600625
+    "paidsearch_activity.csv": 2936504
   }
 }
