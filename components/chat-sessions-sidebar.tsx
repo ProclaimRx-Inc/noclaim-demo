@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { MessageSquare, Plus, Trash2 } from "lucide-react"
+import { MessageSquare, Pencil, Plus, Trash2 } from "lucide-react"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -13,6 +13,16 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +39,7 @@ import {
   deleteSession,
   loadSessions,
   navigateAfterChatDeleted,
+  renameSession,
   saveSessions,
   setActiveChatId,
 } from "@/lib/chat-sessions"
@@ -41,6 +52,8 @@ function ChatSessionsInner() {
 
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [pendingDelete, setPendingDelete] = useState<ChatSession | null>(null)
+  const [renameTarget, setRenameTarget] = useState<ChatSession | null>(null)
+  const [renameDraft, setRenameDraft] = useState("")
 
   const reload = useCallback(() => {
     const list = [...loadSessions()]
@@ -75,6 +88,18 @@ function ChatSessionsInner() {
     navigateAfterChatDeleted(id, activeId, router)
   }
 
+  const openRename = (s: ChatSession) => {
+    setRenameTarget(s)
+    setRenameDraft(s.title)
+  }
+
+  const confirmRename = () => {
+    if (!renameTarget) return
+    renameSession(renameTarget.id, renameDraft)
+    setRenameTarget(null)
+    reload()
+  }
+
   return (
     <>
       <SidebarGroup>
@@ -96,6 +121,20 @@ function ChatSessionsInner() {
                       <span className="truncate">{s.title}</span>
                     </Link>
                   </SidebarMenuButton>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                    title="Rename chat"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      openRename(s)
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <Button
                     type="button"
                     variant="ghost"
@@ -140,6 +179,46 @@ function ChatSessionsInner() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog
+        open={!!renameTarget}
+        onOpenChange={(open) => {
+          if (!open) setRenameTarget(null)
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename chat</DialogTitle>
+            <DialogDescription>
+              This name is only stored in this browser. Leave blank to use the first user message again.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 py-2">
+            <Label htmlFor="rename-chat-title">Title</Label>
+            <Input
+              id="rename-chat-title"
+              value={renameDraft}
+              onChange={(e) => setRenameDraft(e.target.value)}
+              maxLength={200}
+              placeholder="Chat title"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  confirmRename()
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setRenameTarget(null)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={confirmRename}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

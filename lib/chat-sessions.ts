@@ -27,7 +27,8 @@ function isChatSession(x: unknown): x is ChatSession {
     typeof o.id === "string" &&
     typeof o.title === "string" &&
     Array.isArray(o.messages) &&
-    typeof o.updatedAt === "string"
+    typeof o.updatedAt === "string" &&
+    (o.titleManual === undefined || typeof o.titleManual === "boolean")
   )
 }
 
@@ -77,6 +78,32 @@ export function titleFromMessages(messages: ChatMessage[]): string {
   if (!firstUser?.content?.trim()) return "New chat"
   const t = firstUser.content.trim().replace(/\s+/g, " ")
   return t.length > 48 ? `${t.slice(0, 45)}…` : t
+}
+
+const MAX_SESSION_TITLE_LEN = 120
+
+/** Set a custom session title, or clear manual mode with an empty string (title follows messages again). */
+export function renameSession(sessionId: string, newTitle: string): void {
+  const all = loadSessions()
+  const existing = all.find((s) => s.id === sessionId)
+  if (!existing) return
+  const trimmed = newTitle.trim()
+  let title: string
+  let titleManual: boolean
+  if (trimmed.length === 0) {
+    title = titleFromMessages(existing.messages)
+    titleManual = false
+  } else {
+    title = trimmed.length > MAX_SESSION_TITLE_LEN ? `${trimmed.slice(0, MAX_SESSION_TITLE_LEN - 1)}…` : trimmed
+    titleManual = true
+  }
+  const updated: ChatSession = {
+    ...existing,
+    title,
+    titleManual,
+    updatedAt: new Date().toISOString(),
+  }
+  saveSessions(upsertSession(all, updated))
 }
 
 export function createEmptySession(): ChatSession {

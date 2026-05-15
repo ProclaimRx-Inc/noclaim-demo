@@ -162,7 +162,7 @@ export function ChatPanel() {
     const updated = {
       ...existing,
       messages: nextMessages,
-      title: titleFromMessages(nextMessages),
+      title: existing.titleManual ? existing.title : titleFromMessages(nextMessages),
       updatedAt: new Date().toISOString(),
     }
     saveSessions(upsertSession(all, updated))

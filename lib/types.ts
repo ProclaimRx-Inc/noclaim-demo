@@ -9,6 +9,8 @@ export interface ChatMessage {
 export interface ChatSession {
   id: string
   title: string
+  /** When true, `title` was set by the user and is not overwritten from message text. */
+  titleManual?: boolean
   messages: ChatMessage[]
   updatedAt: string
 }
