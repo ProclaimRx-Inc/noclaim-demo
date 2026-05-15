@@ -23,5 +23,20 @@
     "id": "website-activity",
     "name": "Website activity",
     "path": "website_activity.csv"
+  },
+  {
+    "id": "sample-activity",
+    "name": "Sample activity",
+    "path": "sample_activity.csv"
+  },
+  {
+    "id": "speaker-hcp-activity",
+    "name": "Speaker HCP activity",
+    "path": "speaker_hcp_activity.csv"
+  },
+  {
+    "id": "paidsearch-activity",
+    "name": "Paid search activity",
+    "path": "paidsearch_activity.csv"
   }
 ]

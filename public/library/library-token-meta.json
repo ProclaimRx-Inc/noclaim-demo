@@ -6,13 +6,19 @@
     "copay-activity": 967,
     "cost-activity": 8721,
     "speaker-activity": 10385,
-    "website-activity": 6773
+    "website-activity": 6773,
+    "sample-activity": 121532,
+    "speaker-hcp-activity": 151203,
+    "paidsearch-activity": 3600625
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
     "copay_activity.csv": 967,
     "cost_activity.csv": 8721,
     "speaker_activity.csv": 10385,
-    "website_activity.csv": 6773
+    "website_activity.csv": 6773,
+    "sample_activity.csv": 121532,
+    "speaker_hcp_activity.csv": 151203,
+    "paidsearch_activity.csv": 3600625
   }
 }
