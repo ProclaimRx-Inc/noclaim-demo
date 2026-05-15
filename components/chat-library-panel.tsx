@@ -185,8 +185,7 @@ export function ChatLibraryPanel() {
           <DialogHeader className="shrink-0 space-y-2 border-b pb-4 text-left">
             <DialogTitle>Preview: {preview?.title}</DialogTitle>
             <DialogDescription className="text-left">
-              Raw file text in a monospace block. The model still receives the same plain file body when a file is
-              checked in the library.
+              Raw file text of the data. If the file is too large, it cannot be sent to the model.
             </DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-2 pr-1">
