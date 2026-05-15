@@ -1,6 +1,6 @@
 import { DEFAULT_LLM_MODEL_ID, isAllowedModelId } from "@/lib/llm-models"
 
-const KEY = "noclaim-llm-model"
+const KEY = "noclaimrx-llm-model"
 
 export function getStoredLlmModelId(): string {
   if (typeof window === "undefined") return DEFAULT_LLM_MODEL_ID

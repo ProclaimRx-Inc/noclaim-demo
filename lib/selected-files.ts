@@ -1,4 +1,4 @@
-const KEY = "noclaim-selected-file-ids"
+const KEY = "noclaimrx-selected-file-ids"
 
 export function getSelectedFileIds(): string[] {
   if (typeof window === "undefined") return []
@@ -33,7 +33,7 @@ export function clearSelectedFileIds(): void {
 }
 
 /** Fired when the user checks/unchecks library files (listen on `window` in the chat UI). */
-export const LIBRARY_SELECTION_CHANGED_EVENT = "noclaim-library-selection-changed"
+export const LIBRARY_SELECTION_CHANGED_EVENT = "noclaimrx-library-selection-changed"
 
 export function emitLibrarySelectionChanged(): void {
   if (typeof window === "undefined") return

@@ -10,8 +10,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Noclaim',
-  description: 'Internal Noclaim chat application',
+  title: 'NoclaimRx',
+  description: 'Internal NoclaimRx chat application',
   generator: 'v0.app',
   icons: {
     icon: [

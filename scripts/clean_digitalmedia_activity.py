@@ -4,7 +4,7 @@
 - Drops `relative_date`.
 - `date`: ISO date only (YYYY-MM-DD), UTC calendar day from stored timestamps.
 - `placement`: split on |, drop empty segments and tokens NA / None / N/A (see _placement_token_drop).
-- Prints `url_click_through` null/empty stats, then drops rows whose `url_landing_page` is null/empty.
+- Drops rows where `url_landing_page` or `url_click_through` is null/empty (after strip).
 
 Requires: pip install pyarrow
 
@@ -89,11 +89,36 @@ def main() -> int:
         print("Column url_landing_page missing", file=sys.stderr)
         return 1
 
-    empty_url = 0
+    try:
+        i_uc = names.index("url_click_through")
+    except ValueError:
+        print("Column url_click_through missing", file=sys.stderr)
+        return 1
+
+    empty_landing = 0
+    empty_click = 0
+    both_urls_ok = 0
+
     for r in range(n):
-        if url_empty(t.column(i_ul)[r].as_py()):
-            empty_url += 1
-    print(f"url_landing_page null or empty: {empty_url:,} of {n:,} ({100 * empty_url / n:.2f}%)")
+        ul = t.column(i_ul)[r].as_py()
+        uc = t.column(i_uc)[r].as_py()
+        bl = url_empty(ul)
+        bc = url_empty(uc)
+        if bl:
+            empty_landing += 1
+        if bc:
+            empty_click += 1
+        if not bl and not bc:
+            both_urls_ok += 1
+
+    removed = n - both_urls_ok
+    print(
+        f"Keeping rows with both URLs non-empty: {both_urls_ok:,} of {n:,} "
+        f"({100 * both_urls_ok / n:.2f}%)"
+    )
+    print(f"Removed (missing landing and/or click): {removed:,} ({100 * removed / n:.2f}%)")
+    print(f"  — url_landing_page null/empty: {empty_landing:,} of {n:,}")
+    print(f"  — url_click_through null/empty: {empty_click:,} of {n:,}")
 
     out_cols = [c for c in names if c != "relative_date"]
     idx_map = [names.index(c) for c in out_cols]
@@ -105,7 +130,13 @@ def main() -> int:
     i_date = out_cols.index("date") if "date" in out_cols else -1
     i_place = out_cols.index("placement") if "placement" in out_cols else -1
 
+    written = 0
     for r in range(n):
+        ul_raw = t.column(i_ul)[r].as_py()
+        uc_raw = t.column(i_uc)[r].as_py()
+        if url_empty(ul_raw) or url_empty(uc_raw):
+            continue
+
         row_out: list[str] = []
         for j, ci in enumerate(idx_map):
             v = t.column(ci)[r].as_py()
@@ -118,9 +149,12 @@ def main() -> int:
             s = s.replace("\r\n", "\n").replace("\r", "\n")
             row_out.append(s)
         w.writerow(row_out)
+        written += 1
 
     CSV_OUT.write_text(buf.getvalue(), encoding="utf-8")
-    print(f"Wrote {CSV_OUT} ({n:,} rows, {len(out_cols)} columns)")
+    print(
+        f"Wrote {CSV_OUT} ({written:,} rows after landing+click filter, was {n:,}; {len(out_cols)} columns)"
+    )
     return 0
 
 

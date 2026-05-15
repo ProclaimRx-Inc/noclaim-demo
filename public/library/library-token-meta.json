@@ -13,7 +13,7 @@
     "speaker-hcp-activity": 151203,
     "paidsearch-activity": 2936504,
     "paidsocial-activity": 5835259,
-    "digitalmedia-activity": 47643005
+    "digitalmedia-activity": 36512961
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
@@ -27,7 +27,7 @@
     "speaker_hcp_activity.csv": 151203,
     "paidsearch_activity.csv": 2936504,
     "paidsocial_activity.csv": 5835259,
-    "digitalmedia_activity.csv": 47643005
+    "digitalmedia_activity.csv": 36512961
   },
   "fileStats": {
     "hcp_specialty.csv": {
@@ -97,10 +97,10 @@
       "sizeBytes": 23340931
     },
     "digitalmedia_activity.csv": {
-      "estimatedTokens": 47643005,
-      "rows": 454431,
+      "estimatedTokens": 36512961,
+      "rows": 346962,
       "columns": 17,
-      "sizeBytes": 190591519
+      "sizeBytes": 146069441
     }
   }
 }

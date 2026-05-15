@@ -74,8 +74,8 @@ function ChatSessionsInner() {
   }, [reload, pathname, activeId])
 
   useEffect(() => {
-    window.addEventListener("noclaim-chats-updated", reload)
-    return () => window.removeEventListener("noclaim-chats-updated", reload)
+    window.addEventListener("noclaimrx-chats-updated", reload)
+    return () => window.removeEventListener("noclaimrx-chats-updated", reload)
   }, [reload])
 
   const onNewChat = () => {

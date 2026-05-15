@@ -1,4 +1,4 @@
-# Noclaim
+# NoclaimRx
 
 Internal chat app for exploring data with an LLM. **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tailwind CSS**, **shadcn/ui**, and **Clerk** for authentication. Conversations live in the browser (**localStorage** only—no chat database).
 

@@ -19,7 +19,7 @@ export function AppSidebar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <MessageSquare className="h-4 w-4" />
           </div>
-          <span className="font-semibold">Noclaim</span>
+          <span className="font-semibold">NoclaimRx</span>
         </div>
       </SidebarHeader>
       <SidebarContent className="min-h-0 flex-1 overflow-hidden">

@@ -1,12 +1,12 @@
 import type { ChatMessage, ChatSession } from "@/lib/types"
 
-const SESSIONS_KEY = "noclaim-chat-sessions"
-const ACTIVE_CHAT_KEY = "noclaim-active-chat-id"
+const SESSIONS_KEY = "noclaimrx-chat-sessions"
+const ACTIVE_CHAT_KEY = "noclaimrx-active-chat-id"
 const LEGACY_KEY = "chat-history"
 
 export function broadcastChatsUpdated(): void {
   if (typeof window === "undefined") return
-  window.dispatchEvent(new Event("noclaim-chats-updated"))
+  window.dispatchEvent(new Event("noclaimrx-chats-updated"))
 }
 
 function safeParseSessions(raw: string | null): ChatSession[] {
