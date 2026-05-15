@@ -57,6 +57,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 type TokenEstimatePayload = {
   estimatedPromptTokens: number
   contextWindowTokens: number
+  nextMessageTokens: number
+  previousHistoryTokens: number
   breakdown: { system: number; messages: number; filesRaw: number }
 }
 
@@ -125,8 +127,26 @@ export function ChatPanel() {
             setTokenEstimate(null)
             return
           }
-          const data = (await res.json()) as TokenEstimatePayload
-          setTokenEstimate(data)
+          const raw = (await res.json()) as Partial<TokenEstimatePayload> & {
+            estimatedPromptTokens?: number
+            contextWindowTokens?: number
+          }
+          if (typeof raw.estimatedPromptTokens !== "number" || typeof raw.contextWindowTokens !== "number") {
+            setTokenEstimate(null)
+            return
+          }
+          const next = typeof raw.nextMessageTokens === "number" ? raw.nextMessageTokens : 0
+          const prev =
+            typeof raw.previousHistoryTokens === "number"
+              ? raw.previousHistoryTokens
+              : Math.max(0, raw.estimatedPromptTokens - next)
+          setTokenEstimate({
+            estimatedPromptTokens: raw.estimatedPromptTokens,
+            contextWindowTokens: raw.contextWindowTokens,
+            nextMessageTokens: next,
+            previousHistoryTokens: prev,
+            breakdown: raw.breakdown ?? { system: 0, messages: 0, filesRaw: 0 },
+          })
         } catch {
           setTokenEstimate(null)
         }
@@ -351,162 +371,151 @@ export function ChatPanel() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex shrink-0 flex-col gap-0 border-b px-6 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold">Chat</h1>
-            {c && (
-              <p className="text-xs text-muted-foreground">
-                Session <code className="rounded bg-muted px-1">{c.slice(0, 8)}…</code>
-              </p>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Label htmlFor="llm-model" className="text-xs text-muted-foreground whitespace-nowrap">
-              Model
-            </Label>
-            <Select
-              value={modelId}
-              onValueChange={(v) => {
-                setModelId(v)
-                setStoredLlmModelId(v)
-              }}
-            >
-              <SelectTrigger id="llm-model" size="sm" className="h-8 w-[min(14rem,calc(100vw-8rem))] min-w-[10rem]">
-                <SelectValue placeholder="Model" />
-              </SelectTrigger>
-              <SelectContent align="end" className="max-h-[min(24rem,70vh)]">
-                {LLM_MODEL_GROUPS.map((group) => (
-                  <SelectGroup key={group.vendor}>
-                    <SelectLabel>{group.vendor}</SelectLabel>
-                    {group.models.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.label}
-                      </SelectItem>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <header className="sticky top-0 z-20 shrink-0 border-b bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <div className="min-w-0">
+                <h1 className="text-xl font-semibold">Chat</h1>
+                {c && (
+                  <p className="text-xs text-muted-foreground">
+                    Session <code className="rounded bg-muted px-1">{c.slice(0, 8)}…</code>
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Label htmlFor="llm-model" className="text-xs text-muted-foreground whitespace-nowrap">
+                  Model
+                </Label>
+                <Select
+                  value={modelId}
+                  onValueChange={(v) => {
+                    setModelId(v)
+                    setStoredLlmModelId(v)
+                  }}
+                >
+                  <SelectTrigger id="llm-model" size="sm" className="h-8 w-[min(14rem,calc(100vw-8rem))] min-w-[10rem]">
+                    <SelectValue placeholder="Model" />
+                  </SelectTrigger>
+                  <SelectContent align="end" className="max-h-[min(24rem,70vh)]">
+                    {LLM_MODEL_GROUPS.map((group) => (
+                      <SelectGroup key={group.vendor}>
+                        <SelectLabel>{group.vendor}</SelectLabel>
+                        {group.models.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 shrink-0 gap-1 px-2"
-              title="Preview the full system string for the selected model and library files"
-              onClick={() => void openSystemPromptPreview()}
-            >
-              <ScrollText className="h-4 w-4" />
-              <span className="hidden sm:inline">System prompt</span>
-            </Button>
-          </div>
-          {c && (
-            <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
-            {messages.length > 0 && (
-              <>
-                <Button variant="outline" size="sm" onClick={exportHistory}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 shrink-0 gap-1 px-2"
+                  title="Preview the full system string for the selected model and library files"
+                  onClick={() => void openSystemPromptPreview()}
+                >
+                  <ScrollText className="h-4 w-4" />
+                  <span className="hidden sm:inline">System prompt</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={clearHistory}>
-                  Clear session
-                </Button>
-              </>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete chat
-            </Button>
-            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This conversation will be removed from this browser. Export first if you need a copy. This cannot
-                    be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={deleteThisChat}
+                {c && tokenEstimate && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex max-w-full min-w-0 shrink-0 items-center gap-0.5 whitespace-nowrap rounded-md border border-border bg-muted/50 px-2 py-0.5 font-mono text-[11px] leading-tight text-foreground tabular-nums hover:bg-muted/80"
+                      >
+                        <span className="text-muted-foreground">{tokenEstimate.nextMessageTokens.toLocaleString()}</span>
+                        <span className="text-muted-foreground">+</span>
+                        <span>{tokenEstimate.previousHistoryTokens.toLocaleString()}</span>
+                        <span className="text-muted-foreground">/</span>
+                        <span>{tokenEstimate.contextWindowTokens.toLocaleString()}</span>
+                        <span className="ml-0.5 font-sans text-[10px] font-normal text-muted-foreground">tokens</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs text-left font-sans font-normal normal-case">
+                      <p className="font-medium text-background">Rough prompt for next send (chars ÷ 4)</p>
+                      <p className="mt-1 text-background/90">
+                        Next message (draft): {tokenEstimate.nextMessageTokens.toLocaleString()}
+                      </p>
+                      <p className="text-background/90">
+                        System + library + prior turns: {tokenEstimate.previousHistoryTokens.toLocaleString()}
+                      </p>
+                      <p className="mt-1 text-background/80">
+                        Sum (next + history): {tokenEstimate.estimatedPromptTokens.toLocaleString()}
+                      </p>
+                      <p className="mt-1 text-background/80">
+                        System + library in prompt: {tokenEstimate.breakdown.system.toLocaleString()}
+                      </p>
+                      <p className="text-background/80">
+                        Message turns (incl. draft): {tokenEstimate.breakdown.messages.toLocaleString()}
+                      </p>
+                      <p className="mt-1 text-background/90">
+                        Model context limit: {tokenEstimate.contextWindowTokens.toLocaleString()}
+                      </p>
+                      {lastApiPromptTokens !== null && (
+                        <p className="mt-1 text-background/90">Last API prompt tokens: {lastApiPromptTokens.toLocaleString()}</p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {c && lastApiPromptTokens !== null && (
+                  <span className="hidden text-[11px] text-muted-foreground tabular-nums md:inline">
+                    API prompt: {lastApiPromptTokens.toLocaleString()}
+                  </span>
+                )}
+              </div>
+              {c && (
+                <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
+                  {messages.length > 0 && (
+                    <>
+                      <Button variant="outline" size="sm" onClick={exportHistory}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={clearHistory}>
+                        Clear session
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setDeleteOpen(true)}
                   >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            </div>
-          )}
-          </div>
-          {c && (tokenEstimate !== null || lastApiPromptTokens !== null) && (
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 text-xs text-muted-foreground">
-              {tokenEstimate && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="inline-flex max-w-full items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-0.5 font-mono text-[11px] text-foreground tabular-nums hover:bg-muted/80"
-                    >
-                      Est. next send ≈ {tokenEstimate.estimatedPromptTokens.toLocaleString()} /{" "}
-                      {tokenEstimate.contextWindowTokens.toLocaleString()} tok
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs text-left font-sans font-normal normal-case">
-                    <p className="font-medium text-background">Rough prompt size (chars ÷ 4)</p>
-                    <p className="mt-1 text-background/90">
-                      System (includes library in prompt): {tokenEstimate.breakdown.system.toLocaleString()}
-                    </p>
-                    <p className="text-background/90">
-                      Messages (incl. draft): {tokenEstimate.breakdown.messages.toLocaleString()}
-                    </p>
-                    <p className="mt-1 text-background/80">
-                      Provider token counts appear after a successful send when the API returns usage.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-              {lastApiPromptTokens !== null && (
-                <span className="tabular-nums text-foreground/90">
-                  Last request (API): {lastApiPromptTokens.toLocaleString()} prompt tok
-                </span>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete chat
+                  </Button>
+                  <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This conversation will be removed from this browser. Export first if you need a copy. This
+                          cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={deleteThisChat}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               )}
             </div>
-          )}
-        </header>
+          </header>
 
-        <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
-          <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">
-            <DialogHeader className="shrink-0 border-b pb-4 text-left">
-              <DialogTitle>System prompt (debug)</DialogTitle>
-              <DialogDescription className="text-left">
-                Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
-                <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
-                {systemPromptLoading ? " — loading…" : ""}, including the markdown hint and any checked library files.
-                Per-model text lives under <code className="rounded bg-muted px-0.5 text-xs">content/system-prompts/</code>
-                .
-              </DialogDescription>
-            </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto py-3">
-              {systemPromptError ? (
-                <p className="text-sm text-destructive">{systemPromptError}</p>
-              ) : (
-                <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-                  {systemPromptLoading ? "…" : systemPromptText}
-                </pre>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+        <div className="min-h-0 flex-1 px-6 py-6">
           <div className="mx-auto max-w-3xl">
             {messages.length === 0 ? (
               <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
@@ -533,6 +542,31 @@ export function ChatPanel() {
             )}
           </div>
         </div>
+        </div>
+
+        <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
+          <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">
+            <DialogHeader className="shrink-0 border-b pb-4 text-left">
+              <DialogTitle>System prompt (debug)</DialogTitle>
+              <DialogDescription className="text-left">
+                Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
+                <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
+                {systemPromptLoading ? " — loading…" : ""}, including the markdown hint and any checked library files.
+                Per-model text lives under <code className="rounded bg-muted px-0.5 text-xs">content/system-prompts/</code>
+                .
+              </DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto py-3">
+              {systemPromptError ? (
+                <p className="text-sm text-destructive">{systemPromptError}</p>
+              ) : (
+                <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
+                  {systemPromptLoading ? "…" : systemPromptText}
+                </pre>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="shrink-0 border-t px-6 py-4">
         <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">

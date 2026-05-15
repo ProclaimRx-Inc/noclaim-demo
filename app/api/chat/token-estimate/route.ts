@@ -40,10 +40,17 @@ export async function POST(request: Request) {
     typeof body.pendingUserText === "string" && body.pendingUserText.trim().length > 0
       ? body.pendingUserText.trim()
       : ""
-  if (pending) {
-    merged.push({ role: "user", content: pending })
-  }
 
-  const bundle = estimatePromptTokenBundle(modelId, merged, files)
-  return NextResponse.json(bundle)
+  const bundleHistory = estimatePromptTokenBundle(modelId, merged, files)
+  const mergedWithPending = pending ? [...merged, { role: "user" as const, content: pending }] : merged
+  const bundleTotal = estimatePromptTokenBundle(modelId, mergedWithPending, files)
+
+  const nextMessageTokens = Math.max(0, bundleTotal.estimatedPromptTokens - bundleHistory.estimatedPromptTokens)
+  const previousHistoryTokens = bundleHistory.estimatedPromptTokens
+
+  return NextResponse.json({
+    ...bundleTotal,
+    nextMessageTokens,
+    previousHistoryTokens,
+  })
 }
