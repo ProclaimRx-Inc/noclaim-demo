@@ -95,7 +95,7 @@ pnpm dev
 Resolved in this repo where applicable:
 
 1. Light/dark toggle works (`ThemeToggle`).
-2. No attach-from-chat control; the **library lives in the chat** right panel (`/files` redirects to `/chat`).
+2. No separate **Files** route; the **library** is only in the chat right panel. Old `/files` URLs redirect to `/chat`.
 3. Sign out uses Clerk `signOut` with redirect to `/sign-in`.
 4. Vercel Speed Insights (and Analytics in production) are wired in `app/layout.tsx`.
 5. Chat **Export** exports the current session JSON.
