@@ -4,6 +4,8 @@ export interface ChatMessage {
   content: string
   /** File names included with this user message for UI */
   attachedFileNames?: string[]
+  /** Model id used for this assistant reply (set when the message is created). */
+  modelId?: string
 }
 
 export interface ChatSession {

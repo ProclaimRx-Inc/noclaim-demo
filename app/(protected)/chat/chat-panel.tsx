@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Send, Download, Trash2, ScrollText } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -52,6 +52,7 @@ import {
   isLibraryFileBlockedByEstimatedTokens,
 } from "@/lib/library-file-token-policy"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
+import { setChatSessionSending, isChatSessionSending, useIsChatSessionSending } from "@/lib/chat-in-flight"
 import { DEFAULT_LLM_MODEL_ID, LLM_MODEL_GROUPS } from "@/lib/llm-models"
 import { getStoredLlmModelId, setStoredLlmModelId } from "@/lib/selected-llm-model"
 import { getSelectedFileIds, LIBRARY_SELECTION_CHANGED_EVENT } from "@/lib/selected-files"
@@ -86,7 +87,8 @@ export function ChatPanel() {
 
   const [messages, setMessages] = useState<ChatMessageModel[]>([])
   const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const activeChatIdRef = useRef<string | null>(null)
+  const sendingThisSession = useIsChatSessionSending(c)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [systemPromptOpen, setSystemPromptOpen] = useState(false)
   const [systemPromptText, setSystemPromptText] = useState("")
@@ -242,6 +244,10 @@ export function ChatPanel() {
   }, [c, router])
 
   useEffect(() => {
+    activeChatIdRef.current = c
+  }, [c])
+
+  useEffect(() => {
     if (!c) return
     const all = loadSessions()
     const s = all.find((x) => x.id === c)
@@ -252,9 +258,12 @@ export function ChatPanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!c || !input.trim() || contextLimitBlocked || librarySelectionBlockMessage) return
+    const sessionId = c
+    if (!sessionId || !input.trim() || contextLimitBlocked || librarySelectionBlockMessage) return
+    if (isChatSessionSending(sessionId)) return
 
     const text = input.trim()
+    const modelForThisSend = modelId
     const selectedIds = getSelectedFileIds()
     const byId = new Map(libraryManifest.map((e) => [e.id, e]))
     const attachedNames = selectedIds
@@ -270,10 +279,10 @@ export function ChatPanel() {
 
     const nextAfterUser = [...messages, userMessage]
     setMessages(nextAfterUser)
-    persistSession(c, nextAfterUser)
+    persistSession(sessionId, nextAfterUser)
     setInput("")
-    setIsLoading(true)
     setLastApiPromptTokens(null)
+    setChatSessionSending(sessionId, true)
 
     const historyForApi = nextAfterUser.map(({ role, content }) => ({ role, content }))
 
@@ -283,7 +292,7 @@ export function ChatPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: historyForApi,
-          model: modelId,
+          model: modelForThisSend,
           selectedLibraryIds: selectedIds,
         }),
       })
@@ -305,7 +314,7 @@ export function ChatPanel() {
       } else {
         assistantText =
           data.response || (data.error ? `Error: ${data.error}` : "Sorry, I could not process your request.")
-        if (typeof data.usage?.promptTokens === "number") {
+        if (typeof data.usage?.promptTokens === "number" && activeChatIdRef.current === sessionId) {
           setLastApiPromptTokens(data.usage.promptTokens)
         }
       }
@@ -314,27 +323,35 @@ export function ChatPanel() {
         id: crypto.randomUUID(),
         role: "assistant",
         content: assistantText,
+        modelId: modelForThisSend,
       }
 
       const finalMsgs = [...nextAfterUser, assistantMessage]
-      setMessages(finalMsgs)
+      if (activeChatIdRef.current === sessionId) {
+        setMessages(finalMsgs)
+      }
       if (data.contextWindowExceeded) {
-        persistSession(c, finalMsgs, { contextLimitBlocked: true })
-        setContextLimitBlocked(true)
+        persistSession(sessionId, finalMsgs, { contextLimitBlocked: true })
+        if (activeChatIdRef.current === sessionId) {
+          setContextLimitBlocked(true)
+        }
       } else {
-        persistSession(c, finalMsgs)
+        persistSession(sessionId, finalMsgs)
       }
     } catch {
       const errorMessage: ChatMessageModel = {
         id: crypto.randomUUID(),
         role: "assistant",
         content: "An error occurred. Please try again.",
+        modelId: modelForThisSend,
       }
       const finalMsgs = [...nextAfterUser, errorMessage]
-      setMessages(finalMsgs)
-      persistSession(c, finalMsgs)
+      if (activeChatIdRef.current === sessionId) {
+        setMessages(finalMsgs)
+      }
+      persistSession(sessionId, finalMsgs)
     } finally {
-      setIsLoading(false)
+      setChatSessionSending(sessionId, false)
     }
   }
 
@@ -576,7 +593,7 @@ export function ChatPanel() {
                   {messages.map((message) => (
                     <ChatMessage key={message.id} message={message} />
                   ))}
-                  {isLoading && (
+                  {sendingThisSession && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <div className="h-2 w-2 animate-pulse rounded-full bg-current" />
                       <span className="text-sm">Thinking...</span>
@@ -585,6 +602,7 @@ export function ChatPanel() {
                 </div>
               )}
             </div>
+          </div>
           </div>
 
           <div className="shrink-0 border-t bg-background px-6 py-4">
@@ -610,7 +628,7 @@ export function ChatPanel() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
-                      if (!librarySelectionBlockMessage) void handleSubmit(e)
+                      if (!librarySelectionBlockMessage && c && !isChatSessionSending(c)) void handleSubmit(e)
                     }
                   }}
                 />
@@ -618,7 +636,7 @@ export function ChatPanel() {
                   type="submit"
                   size="icon"
                   className="h-[80px] w-[80px]"
-                  disabled={isLoading || !c || contextLimitBlocked || !!librarySelectionBlockMessage}
+                  disabled={sendingThisSession || !c || contextLimitBlocked || !!librarySelectionBlockMessage}
                 >
                   <Send className="h-5 w-5" />
                 </Button>
@@ -626,10 +644,9 @@ export function ChatPanel() {
             </form>
           </div>
         </div>
-      </div>
 
-      <ChatLibraryPanel />
-    </div>
+        <ChatLibraryPanel />
+      </div>
 
     <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
       <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">

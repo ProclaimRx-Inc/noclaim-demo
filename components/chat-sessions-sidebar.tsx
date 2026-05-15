@@ -1,9 +1,10 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { MessageSquare, Pencil, Plus, Trash2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -34,6 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { ChatSession } from "@/lib/types"
+import { useChatInFlightSnapshot } from "@/lib/chat-in-flight"
 import {
   createEmptySession,
   deleteSession,
@@ -54,6 +56,12 @@ function ChatSessionsInner() {
   const [pendingDelete, setPendingDelete] = useState<ChatSession | null>(null)
   const [renameTarget, setRenameTarget] = useState<ChatSession | null>(null)
   const [renameDraft, setRenameDraft] = useState("")
+
+  const inFlightSnap = useChatInFlightSnapshot()
+  const inFlightIds = useMemo(
+    () => new Set(inFlightSnap ? inFlightSnap.split("|").filter(Boolean) : []),
+    [inFlightSnap]
+  )
 
   const reload = useCallback(() => {
     const list = [...loadSessions()]
@@ -117,8 +125,19 @@ function ChatSessionsInner() {
               <SidebarMenuItem key={s.id}>
                 <div className="group/item flex w-full min-w-0 items-center gap-0.5">
                   <SidebarMenuButton asChild isActive={activeId === s.id} tooltip={s.title} className="min-w-0 flex-1">
-                    <Link href={`/chat?c=${s.id}`} title={s.title}>
-                      <MessageSquare className="h-4 w-4 shrink-0" />
+                    <Link href={`/chat?c=${s.id}`} title={s.title} className="relative">
+                      <MessageSquare
+                        className={cn(
+                          "h-4 w-4 shrink-0",
+                          inFlightIds.has(s.id) && "text-muted-foreground"
+                        )}
+                      />
+                      {inFlightIds.has(s.id) && (
+                        <span
+                          className="absolute left-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-primary"
+                          aria-hidden
+                        />
+                      )}
                       <span className="truncate">{s.title}</span>
                     </Link>
                   </SidebarMenuButton>

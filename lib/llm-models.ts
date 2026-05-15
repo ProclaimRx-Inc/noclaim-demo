@@ -55,3 +55,12 @@ export function isAllowedModelId(id: string): boolean {
 export function providerForModel(id: string): LlmProvider | undefined {
   return MODEL_TO_PROVIDER[id]
 }
+
+/** Human-readable label for the model picker; falls back to the raw id. */
+export function modelLabelForId(id: string): string {
+  for (const g of LLM_MODEL_GROUPS) {
+    const m = g.models.find((x) => x.id === id)
+    if (m) return m.label
+  }
+  return id
+}
