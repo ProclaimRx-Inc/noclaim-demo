@@ -22,7 +22,7 @@ export function AppSidebar() {
           <span className="font-semibold">Noclaim</span>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="min-h-0 flex-1 overflow-hidden">
         <ChatSessionsSidebar />
       </SidebarContent>
       <SidebarFooter className="border-t">

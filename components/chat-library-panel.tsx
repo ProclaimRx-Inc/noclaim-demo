@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { LibraryMarkdownPreview } from "@/components/library-markdown-preview"
 import { fetchLibraryFileStats, fetchLibraryFileText, fetchLibraryManifest } from "@/lib/library-client"
 import { buildLibraryPreviewMarkdown } from "@/lib/library-preview-markdown"
@@ -86,8 +85,8 @@ export function ChatLibraryPanel() {
 
   return (
     <>
-      <aside className="flex min-h-0 w-full max-h-[40vh] shrink-0 flex-col border-t border-border bg-muted/20 md:h-full md:max-h-none md:w-80 md:border-t-0 md:border-l">
-        <div className="border-b px-3 py-3">
+      <aside className="flex min-h-0 w-full max-h-[40vh] shrink-0 flex-col overflow-hidden border-t border-border bg-muted/20 md:h-full md:max-h-none md:w-80 md:self-stretch md:border-t-0 md:border-l">
+        <div className="shrink-0 border-b px-3 py-3">
           <h2 className="text-sm font-semibold">Library</h2>
           <p className="mt-1 text-xs text-muted-foreground">Checked items are sent with each message.</p>
           {manifest.length > 0 && (
@@ -102,7 +101,7 @@ export function ChatLibraryPanel() {
           )}
         </div>
 
-        <ScrollArea className="flex-1">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="space-y-1 p-2">
             {manifest.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-6 text-center">
@@ -177,7 +176,7 @@ export function ChatLibraryPanel() {
               )})
             )}
           </div>
-        </ScrollArea>
+        </div>
       </aside>
 
       <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>

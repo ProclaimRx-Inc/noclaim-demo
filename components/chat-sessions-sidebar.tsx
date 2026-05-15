@@ -102,16 +102,17 @@ function ChatSessionsInner() {
 
   return (
     <>
-      <SidebarGroup>
-        <SidebarGroupLabel>Chat History</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <div className="px-2 pb-2">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <SidebarGroup className="flex min-h-0 flex-1 flex-col p-2">
+        <SidebarGroupLabel className="shrink-0">Chat History</SidebarGroupLabel>
+        <SidebarGroupContent className="flex min-h-0 flex-1 flex-col gap-0">
+          <div className="shrink-0 px-2 pb-2">
             <Button variant="outline" size="sm" className="w-full" onClick={onNewChat}>
               <Plus className="mr-2 h-4 w-4" />
               New chat
             </Button>
           </div>
-          <SidebarMenu className="max-h-[40vh] overflow-y-auto">
+          <SidebarMenu className="min-h-0 flex-1 list-none overflow-y-auto overscroll-contain pr-1">
             {sessions.map((s) => (
               <SidebarMenuItem key={s.id}>
                 <div className="group/item flex w-full min-w-0 items-center gap-0.5">
@@ -155,6 +156,7 @@ function ChatSessionsInner() {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
+      </div>
 
       <AlertDialog open={!!pendingDelete} onOpenChange={(open) => !open && setPendingDelete(null)}>
         <AlertDialogContent>
