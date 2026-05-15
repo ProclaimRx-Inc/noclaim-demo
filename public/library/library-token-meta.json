@@ -3,10 +3,16 @@
   "method": "chars/4 (approx)",
   "byManifestId": {
     "hcp-specialty": 347,
-    "copay-activity": 967
+    "copay-activity": 967,
+    "cost-activity": 16937,
+    "speaker-activity": 18158,
+    "website-activity": 11555
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
-    "copay_activity.csv": 967
+    "copay_activity.csv": 967,
+    "cost_activity.csv": 16937,
+    "speaker_activity.csv": 18158,
+    "website_activity.csv": 11555
   }
 }
