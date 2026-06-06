@@ -17,6 +17,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, "..")
 const libDir = path.join(root, "public", "library")
 const metaPath = path.join(libDir, "library-token-meta.json")
+/**
+ * Files truncated on disk to a small preview (header + 100 rows) by
+ * generate-library-token-meta.cjs. Their on-disk content is NOT the real file,
+ * so provider token counts computed from it would be wrong (far too small) and
+ * would mask the "file too large to send" error state. Skip them here and keep
+ * only their full-file estimatedTokens as the source of truth.
+ */
+const overridesPath = path.join(libDir, "library-full-file-stats.json")
+function loadTruncatedPaths() {
+  if (!fs.existsSync(overridesPath)) return new Set()
+  try {
+    const j = JSON.parse(fs.readFileSync(overridesPath, "utf8"))
+    return j && typeof j === "object" && !Array.isArray(j) ? new Set(Object.keys(j)) : new Set()
+  } catch {
+    return new Set()
+  }
+}
 
 const FILE_SEPARATOR = "\n\n---\n\n"
 
@@ -157,6 +174,7 @@ async function main() {
     console.error("manifest.json is not an array")
     process.exit(1)
   }
+  const truncatedPaths = loadTruncatedPaths()
 
   let meta = { version: 2, method: "chars/4 (approx)", fileStats: {} }
   if (fs.existsSync(metaPath)) {
@@ -196,6 +214,18 @@ async function main() {
     const abs = path.join(libDir, entry.path)
     if (!abs.startsWith(libDir) || !fs.existsSync(abs)) {
       console.warn("Missing file:", entry.path)
+      continue
+    }
+
+    if (truncatedPaths.has(entry.path)) {
+      // Only a small preview lives on disk; real file is too large to send.
+      // Drop any stale per-model counts so the file keeps its blocked error state.
+      const stats = meta.fileStats[entry.path]
+      if (stats) {
+        delete stats.libraryPromptTokensByModel
+        delete stats.maxLibraryPromptTokens
+      }
+      console.log(`File ${entry.path}… skipped (truncated preview; too large to send)`)
       continue
     }
 

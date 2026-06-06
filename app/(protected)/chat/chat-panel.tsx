@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Send, Download, Trash2, ScrollText } from "lucide-react"
+import { Send, Download, Trash2, FileJson, FileText as FileTextIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -25,12 +25,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
 import { ChatLibraryPanel } from "@/components/chat-library-panel"
@@ -80,6 +79,58 @@ function contextOverflowExtra(est?: number, lim?: number): string {
   return `\n\nRough size before this send was about ${est.toLocaleString()} tokens (estimate). This model’s context window is about ${lim.toLocaleString()} tokens. Remove older messages or uncheck library files, then try again.`
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
+/** Build a Word-openable HTML document (.doc) for a chat session. */
+function buildChatWordHtml(session: ChatSession): string {
+  const updated = (() => {
+    const d = new Date(session.updatedAt)
+    return Number.isNaN(d.getTime()) ? session.updatedAt : d.toLocaleString()
+  })()
+
+  const messagesHtml = session.messages
+    .map((m) => {
+      const roleLabel = m.role === "user" ? "You" : "Assistant"
+      const roleColor = m.role === "user" ? "#1d4ed8" : "#15803d"
+      const meta: string[] = []
+      if (m.role === "assistant" && m.modelId) meta.push(`Model: ${escapeHtml(m.modelId)}`)
+      if (m.attachedFileNames && m.attachedFileNames.length > 0) {
+        meta.push(`Attached: ${m.attachedFileNames.map(escapeHtml).join(", ")}`)
+      }
+      const metaHtml = meta.length
+        ? `<p style="margin:0 0 4px 0;font-size:9pt;color:#6b7280;">${meta.join(" &middot; ")}</p>`
+        : ""
+      const body = escapeHtml(m.content).replace(/\n/g, "<br/>")
+      return `<div style="margin:0 0 16pt 0;">
+  <p style="margin:0 0 2px 0;font-weight:bold;color:${roleColor};">${roleLabel}</p>
+  ${metaHtml}
+  <p style="margin:0;font-size:11pt;line-height:1.5;">${body}</p>
+</div>`
+    })
+    .join("\n")
+
+  return `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8"/>
+<title>${escapeHtml(session.title)}</title>
+</head>
+<body style="font-family:Calibri,Arial,sans-serif;color:#111827;">
+  <h1 style="font-size:18pt;margin:0 0 4px 0;">${escapeHtml(session.title)}</h1>
+  <p style="margin:0 0 2px 0;font-size:10pt;color:#6b7280;">NoclaimRx chat export</p>
+  <p style="margin:0 0 16pt 0;font-size:10pt;color:#6b7280;">Session ${escapeHtml(session.id)} &middot; Updated ${escapeHtml(updated)}</p>
+  <hr style="border:none;border-top:1px solid #d1d5db;margin:0 0 16pt 0;"/>
+  ${messagesHtml}
+</body>
+</html>`
+}
+
 export function ChatPanel() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -90,10 +141,6 @@ export function ChatPanel() {
   const activeChatIdRef = useRef<string | null>(null)
   const sendingThisSession = useIsChatSessionSending(c)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [systemPromptOpen, setSystemPromptOpen] = useState(false)
-  const [systemPromptText, setSystemPromptText] = useState("")
-  const [systemPromptLoading, setSystemPromptLoading] = useState(false)
-  const [systemPromptError, setSystemPromptError] = useState<string | null>(null)
   const [modelId, setModelId] = useState(DEFAULT_LLM_MODEL_ID)
   const [tokenEstimate, setTokenEstimate] = useState<TokenEstimatePayload | null>(null)
   const [lastApiPromptTokens, setLastApiPromptTokens] = useState<number | null>(null)
@@ -373,41 +420,24 @@ export function ChatPanel() {
     setLastApiPromptTokens(null)
   }
 
-  const openSystemPromptPreview = async () => {
-    setSystemPromptOpen(true)
-    if (librarySelectionBlockMessage) {
-      setSystemPromptLoading(false)
-      setSystemPromptError(librarySelectionBlockMessage)
-      setSystemPromptText("")
-      return
-    }
-    setSystemPromptLoading(true)
-    setSystemPromptError(null)
-    setSystemPromptText("")
-    try {
-      const selectedIds = getSelectedFileIds()
-      const response = await fetch("/api/chat/system-preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: modelId, selectedLibraryIds: selectedIds }),
-      })
-      const data = (await response.json()) as { system?: string; error?: string }
-      if (!response.ok) {
-        setSystemPromptError(data.error ?? `Request failed (${response.status})`)
-        return
-      }
-      setSystemPromptText(typeof data.system === "string" ? data.system : "")
-    } catch {
-      setSystemPromptError("Could not load system prompt preview.")
-    } finally {
-      setSystemPromptLoading(false)
-    }
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
-  const exportHistory = () => {
-    if (!c) return
-    const all = loadSessions()
-    const session = all.find((s) => s.id === c)
+  const activeSessionForExport = (): ChatSession | undefined => {
+    if (!c) return undefined
+    return loadSessions().find((s) => s.id === c)
+  }
+
+  const exportHistoryJson = () => {
+    const session = activeSessionForExport()
     if (!session) return
     const exportPayload = {
       id: session.id,
@@ -416,15 +446,23 @@ export function ChatPanel() {
       messages: session.messages,
     }
     const dataStr = JSON.stringify(exportPayload, null, 2)
-    const blob = new Blob([dataStr], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `noclaimrx-chat-${session.id.slice(0, 8)}-${new Date().toISOString().split("T")[0]}.json`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    const stamp = new Date().toISOString().split("T")[0]
+    downloadBlob(
+      new Blob([dataStr], { type: "application/json" }),
+      `noclaimrx-chat-${session.id.slice(0, 8)}-${stamp}.json`
+    )
+  }
+
+  const exportHistoryWord = () => {
+    const session = activeSessionForExport()
+    if (!session) return
+    const stamp = new Date().toISOString().split("T")[0]
+    const html = buildChatWordHtml(session)
+    // Word opens an HTML document with an .doc extension and the msword MIME type.
+    downloadBlob(
+      new Blob([html], { type: "application/msword" }),
+      `noclaimrx-chat-${session.id.slice(0, 8)}-${stamp}.doc`
+    )
   }
 
   return (
@@ -468,18 +506,6 @@ export function ChatPanel() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 shrink-0 gap-1 px-2"
-                  disabled={!!librarySelectionBlockMessage}
-                  title="Preview the full system string for the selected model and library files"
-                  onClick={() => void openSystemPromptPreview()}
-                >
-                  <ScrollText className="h-4 w-4" />
-                  <span className="hidden sm:inline">System prompt</span>
-                </Button>
                 {c && tokenEstimate && (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -531,10 +557,24 @@ export function ChatPanel() {
                 <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
                   {messages.length > 0 && (
                     <>
-                      <Button variant="outline" size="sm" onClick={exportHistory}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Download className="mr-2 h-4 w-4" />
+                            Export
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={exportHistoryJson}>
+                            <FileJson className="mr-2 h-4 w-4" />
+                            Raw JSON
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={exportHistoryWord}>
+                            <FileTextIcon className="mr-2 h-4 w-4" />
+                            Word document (.doc)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button variant="outline" size="sm" onClick={clearHistory}>
                         Clear session
                       </Button>
@@ -647,28 +687,6 @@ export function ChatPanel() {
 
         <ChatLibraryPanel modelId={modelId} />
       </div>
-
-    <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
-      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-0 overflow-hidden sm:max-w-2xl">
-        <DialogHeader className="shrink-0 border-b pb-4 text-left">
-          <DialogTitle>System prompt (debug)</DialogTitle>
-          <DialogDescription className="text-left">
-            Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
-            <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
-            {systemPromptLoading ? " — loading…" : ""}: checked library files only (empty when none selected).
-          </DialogDescription>
-        </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto py-3">
-          {systemPromptError ? (
-            <p className="text-sm text-destructive">{systemPromptError}</p>
-          ) : (
-            <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-muted p-3 font-mono text-xs leading-relaxed text-foreground">
-              {systemPromptLoading ? "…" : systemPromptText}
-            </pre>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
     </>
   )
 }

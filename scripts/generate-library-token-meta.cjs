@@ -150,8 +150,10 @@ function main() {
     }
 
     if (overrides[e.path]) {
+      // Truncated preview on disk; the real file is too large to send. Keep only the
+      // full-file estimatedTokens (no per-model provider counts) so the UI keeps showing
+      // the "over context limit" error state for these files.
       const o = overrides[e.path]
-      const existing = metaExisting?.fileStats?.[e.path]
       byManifestId[e.id] = o.estimatedTokens
       byFilePath[e.path] = o.estimatedTokens
       fileStats[e.path] = {
@@ -159,12 +161,6 @@ function main() {
         rows: o.rows,
         columns: o.columns,
         sizeBytes: o.sizeBytes,
-        ...(existing?.libraryPromptTokensByModel
-          ? { libraryPromptTokensByModel: existing.libraryPromptTokensByModel }
-          : {}),
-        ...(typeof existing?.maxLibraryPromptTokens === "number"
-          ? { maxLibraryPromptTokens: existing.maxLibraryPromptTokens }
-          : {}),
       }
       continue
     }
