@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "prebuild": "node scripts/generate-library-token-meta.cjs",
+    "precalculate-library-tokens": "node scripts/precalculate-library-provider-tokens.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

@@ -125,6 +125,16 @@ function main() {
   }
   const overridesAfterPrune = JSON.stringify(overrides)
 
+  let metaExisting = null
+  const metaPath = path.join(libDir, "library-token-meta.json")
+  if (fs.existsSync(metaPath)) {
+    try {
+      metaExisting = JSON.parse(fs.readFileSync(metaPath, "utf8"))
+    } catch {
+      metaExisting = null
+    }
+  }
+
   const byManifestId = {}
   const byFilePath = {}
   const fileStats = {}
@@ -141,6 +151,7 @@ function main() {
 
     if (overrides[e.path]) {
       const o = overrides[e.path]
+      const existing = metaExisting?.fileStats?.[e.path]
       byManifestId[e.id] = o.estimatedTokens
       byFilePath[e.path] = o.estimatedTokens
       fileStats[e.path] = {
@@ -148,6 +159,12 @@ function main() {
         rows: o.rows,
         columns: o.columns,
         sizeBytes: o.sizeBytes,
+        ...(existing?.libraryPromptTokensByModel
+          ? { libraryPromptTokensByModel: existing.libraryPromptTokensByModel }
+          : {}),
+        ...(typeof existing?.maxLibraryPromptTokens === "number"
+          ? { maxLibraryPromptTokens: existing.maxLibraryPromptTokens }
+          : {}),
       }
       continue
     }
@@ -170,7 +187,16 @@ function main() {
 
     byManifestId[e.id] = fullStats.estimatedTokens
     byFilePath[e.path] = fullStats.estimatedTokens
-    fileStats[e.path] = fullStats
+    const existing = metaExisting?.fileStats?.[e.path]
+    fileStats[e.path] = {
+      ...fullStats,
+      ...(existing?.libraryPromptTokensByModel
+        ? { libraryPromptTokensByModel: existing.libraryPromptTokensByModel }
+        : {}),
+      ...(typeof existing?.maxLibraryPromptTokens === "number"
+        ? { maxLibraryPromptTokens: existing.maxLibraryPromptTokens }
+        : {}),
+    }
   }
 
   if (JSON.stringify(overrides) !== overridesAfterPrune) {
@@ -179,8 +205,9 @@ function main() {
   }
 
   const out = {
-    version: 2,
-    method: "chars/4 (approx)",
+    version: metaExisting?.version === 3 ? 3 : 2,
+    method: metaExisting?.method || "chars/4 (approx)",
+    ...(metaExisting?.fileSeparatorTokens ? { fileSeparatorTokens: metaExisting.fileSeparatorTokens } : {}),
     byManifestId,
     byFilePath,
     fileStats,

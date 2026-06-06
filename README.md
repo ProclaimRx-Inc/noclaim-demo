@@ -12,8 +12,8 @@ The **library** is a set of **static files** under `public/library/` (mostly CSV
 - **Chat** at `/chat` with **multiple sessions** (sidebar). The active session id is in the URL: `/chat?c=<sessionId>`. `/` redirects to `/chat`.
 - **Model picker** (OpenAI, Anthropic, Google Gemini)—allowlisted ids in `lib/llm-models.ts`. Choice is stored in **localStorage**.
 - **Library panel** on the chat page: pick files, preview, rough **token / row / column / size** metadata, **export** current session as JSON.
-- **Token estimate** in the header (rough prompt size for the next send) via `POST /api/chat/token-estimate`.
-- **System prompt** per model under `content/system-prompts/<model-id>.txt` (see `lib/model-system-prompt-server.ts`).
+- **Token estimate** in the header (library files use offline provider counts; message turns use a rough estimate) via `POST /api/chat/token-estimate`.
+- **System prompt** is **checked library files only** (wrapped plaintext + doc preamble in `lib/llm-chat-providers.ts`). No per-model base prompt files.
 
 ---
 
@@ -53,7 +53,7 @@ Next.js 16 deprecates the root **`middleware.ts`** name in favor of **`proxy.ts`
 - **`POST /api/chat/token-estimate`** — same `selectedLibraryIds` to estimate prompt size for the next turn.
 - **`POST /api/chat/system-preview`** — optional debug view of the composed system string for the current model + selection.
 
-**Oversized library files:** if a file’s estimated token count (see metadata below) is **above ~1M**, it is **blocked** from send (server + UI). Those rows are highlighted in the library panel with a warning state.
+**Oversized library files:** each row shows token count and fit for the **currently selected model**. Files that exceed that model’s context window are disabled (server + UI). Switch models to see different limits—e.g. a file may fit GPT-5.5 but not Gemini Flash.
 
 ---
 
@@ -106,14 +106,15 @@ If you **shrink** a file enough that it no longer needs frozen stats, **remove i
 3. Apply any **column/row filters** you want (spreadsheet, Python, etc.). For complex pipelines (joins, date normalization, dropping columns), use a **one-off script** or notebook; the repo does not enforce a single ETL format beyond “valid UTF-8 text the model can read”.
 4. Add an entry to **`manifest.json`** (`id` stable for stored `localStorage` selections).
 5. Run **`node scripts/generate-library-token-meta.cjs`** (or **`pnpm build`**) and commit **`library-token-meta.json`**, the CSV/text file, **`manifest.json`**, and **`library-full-file-stats.json`** if it changed.
+6. Optionally run **`pnpm precalculate-library-tokens`** (requires API keys in `.env`) to refresh per-model provider token counts in **`library-token-meta.json`**.
 
 **`email_activity.csv`** in this repo is an example of a curated export: built from parquet with `relative_*` columns removed, lifecycle date columns trimmed to **`_date`**, rows requiring non-empty **`hcp_npi`** and **`campaign_name`**, sentinel **`opened_date`** epoch values cleared, and constant columns dropped—then run through the generator above.
 
 ---
 
-## System prompts
+## System prompt
 
-Per allowlisted model id, edit **`content/system-prompts/<model-id>.txt`**. That text is loaded as the base system string before the app’s markdown hint and any checked library files (`lib/model-system-prompt-server.ts`).
+The model **`system`** string (Anthropic `system`, OpenAI `system` message, Gemini `systemInstruction`) contains **only wrapped library file text** (`lib/llm-chat-providers.ts`). When nothing is checked, no system string is sent.
 
 ---
 
@@ -146,7 +147,7 @@ Only configure providers you actually use. Redeploy after changing env vars on V
 | `app/api/chat/` | Chat, token estimate, system preview routes |
 | `components/chat-library-panel.tsx` | Library list + metadata + preview |
 | `lib/library-resolve-server.ts` | Manifest + file read + “blocked selection” checks |
-| `lib/library-file-token-policy.ts` | ~1M token send threshold |
+| `lib/library-file-token-policy.ts` | Per-model library file token lookup + context-window blocking |
 | `scripts/generate-library-token-meta.cjs` | Metadata + optional CSV truncation |
 | `scripts/parquet_to_csv.py` | Parquet → UTF-8 CSV helper |
 | `proxy.ts` | Clerk auth at the network boundary |

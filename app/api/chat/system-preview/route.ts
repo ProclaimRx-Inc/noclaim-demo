@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 import { composeChatSystem } from "@/lib/llm-chat-providers"
 import { DEFAULT_LLM_MODEL_ID, isAllowedModelId } from "@/lib/llm-models"
 import { getLibrarySelectionBlockMessage, resolveLibraryPlaintextFilesByIds } from "@/lib/library-resolve-server"
-import { readModelSystemPromptBase } from "@/lib/model-system-prompt-server"
 
 export async function POST(request: Request) {
   const { userId } = await auth()
@@ -24,14 +23,13 @@ export async function POST(request: Request) {
     ? body.selectedLibraryIds.filter((x): x is string => typeof x === "string")
     : []
 
-  const block = getLibrarySelectionBlockMessage(ids)
+  const block = getLibrarySelectionBlockMessage(ids, modelId)
   if (block) {
     return NextResponse.json({ error: block, librarySelectionBlocked: true }, { status: 400 })
   }
 
   const files = resolveLibraryPlaintextFilesByIds(ids)
-  const base = readModelSystemPromptBase(modelId)
-  const system = composeChatSystem(base, files)
+  const system = composeChatSystem(files)
 
   return NextResponse.json({ system, model: modelId })
 }

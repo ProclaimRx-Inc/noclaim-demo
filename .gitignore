@@ -21,3 +21,4 @@ node_modules
 public/library/*.parquet
 # clerk configuration (can include secrets)
 /.clerk/
+.env

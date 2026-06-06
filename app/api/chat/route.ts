@@ -12,7 +12,6 @@ import {
   turnsFromClientMessages,
 } from "@/lib/llm-chat-providers"
 import { DEFAULT_LLM_MODEL_ID, isAllowedModelId, providerForModel } from "@/lib/llm-models"
-import { readModelSystemPromptBase } from "@/lib/model-system-prompt-server"
 import { isContextWindowExceeded } from "@/lib/openai-context-server"
 import { getLibrarySelectionBlockMessage, resolveLibraryPlaintextFilesByIds } from "@/lib/library-resolve-server"
 
@@ -87,13 +86,12 @@ export async function POST(request: Request) {
   const ids = Array.isArray(body.selectedLibraryIds)
     ? body.selectedLibraryIds.filter((x): x is string => typeof x === "string")
     : []
-  const block = getLibrarySelectionBlockMessage(ids)
+  const block = getLibrarySelectionBlockMessage(ids, modelId)
   if (block) {
     return NextResponse.json({ error: block, librarySelectionBlocked: true }, { status: 400 })
   }
   const filesList = resolveLibraryPlaintextFilesByIds(ids)
-  const modelBase = readModelSystemPromptBase(modelId)
-  const system = composeChatSystem(modelBase, filesList)
+  const system = composeChatSystem(filesList)
   const turns = turnsFromClientMessages(messages)
   if (turns.length === 0) {
     return NextResponse.json({ error: "No valid messages" }, { status: 400 })
@@ -117,6 +115,7 @@ export async function POST(request: Request) {
       contextWindowTokens: bundle.contextWindowTokens,
     })
   } catch (err: unknown) {
+    console.error("Error in chat API:", err)
     if (contextLimitHit(err)) {
       return NextResponse.json(
         {

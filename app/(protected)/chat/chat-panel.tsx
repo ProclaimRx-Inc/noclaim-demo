@@ -49,7 +49,7 @@ import {
 import { fetchLibraryFileStats, fetchLibraryManifest } from "@/lib/library-client"
 import {
   formatBlockedLibrarySelectionMessage,
-  isLibraryFileBlockedByEstimatedTokens,
+  isLibraryFileBlockedForModel,
 } from "@/lib/library-file-token-policy"
 import { CONTEXT_WINDOW_USER_MESSAGE } from "@/lib/context-window-copy"
 import { setChatSessionSending, isChatSessionSending, useIsChatSessionSending } from "@/lib/chat-in-flight"
@@ -118,11 +118,11 @@ export function ChatPanel() {
     for (const id of ids) {
       const entry = byId.get(id)
       if (!entry) continue
-      if (isLibraryFileBlockedByEstimatedTokens(libraryFileStats[entry.path])) names.push(entry.name)
+      if (isLibraryFileBlockedForModel(libraryFileStats[entry.path], modelId)) names.push(entry.name)
     }
     if (names.length === 0) return null
-    return formatBlockedLibrarySelectionMessage(names)
-  }, [selectionEpoch, libraryManifest, libraryFileStats])
+    return formatBlockedLibrarySelectionMessage(names, modelId)
+  }, [selectionEpoch, libraryManifest, libraryFileStats, modelId])
 
   useEffect(() => {
     setModelId(getStoredLlmModelId())
@@ -645,7 +645,7 @@ export function ChatPanel() {
           </div>
         </div>
 
-        <ChatLibraryPanel />
+        <ChatLibraryPanel modelId={modelId} />
       </div>
 
     <Dialog open={systemPromptOpen} onOpenChange={setSystemPromptOpen}>
@@ -655,9 +655,7 @@ export function ChatPanel() {
           <DialogDescription className="text-left">
             Exact <code className="rounded bg-muted px-0.5 text-xs">system</code> string for model{" "}
             <code className="rounded bg-muted px-0.5 text-xs">{modelId}</code>
-            {systemPromptLoading ? " — loading…" : ""}, including the markdown hint and any checked library files.
-            Per-model text lives under <code className="rounded bg-muted px-0.5 text-xs">content/system-prompts/</code>
-            .
+            {systemPromptLoading ? " — loading…" : ""}: checked library files only (empty when none selected).
           </DialogDescription>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto py-3">

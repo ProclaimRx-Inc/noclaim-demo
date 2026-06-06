@@ -3,38 +3,23 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import OpenAI from "openai"
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
 
-const DOC_SYSTEM_PREAMBLE =
-  "The user selected the following documents from their library. Their full text appears below each document header. Use this material as primary evidence when the user asks about it; quote or paraphrase specifics when helpful. If a question does not require the documents, answer from general knowledge without inventing document contents.\n\n"
-
 export type ChatTurn = { role: "user" | "assistant"; content: string }
+
+const FILE_SEPARATOR = "\n\n---\n\n"
 
 export function buildSystemFromFiles(files: { plaintext: string }[]): string | undefined {
   if (!Array.isArray(files) || files.length === 0) return undefined
   const docBlock = files
     .filter((f) => typeof f?.plaintext === "string" && f.plaintext.trim().length > 0)
     .map((f) => f.plaintext)
-    .join("\n\n---\n\n")
+    .join(FILE_SEPARATOR)
   if (!docBlock.trim()) return undefined
-  return DOC_SYSTEM_PREAMBLE + docBlock
+  return docBlock
 }
 
-const ASSISTANT_MARKDOWN_HINT =
-  "When you reply to the user, you may use GitHub-flavored Markdown (headings, bullet or numbered lists, links, inline code, fenced code blocks, and tables) when it improves readability. The chat UI renders Markdown in assistant messages."
-
-const DEFAULT_MODEL_BASE =
-  "You are a helpful assistant. Be clear, accurate, and concise. If you are unsure, say so rather than guessing."
-
-/**
- * Full system string for the API: optional per-model base (from repo text file), UI markdown hint,
- * then optional library document block.
- */
-export function composeChatSystem(modelBaseFromFile: string, files: { plaintext: string }[]): string {
-  const trimmed = modelBaseFromFile.trim()
-  const base = trimmed.length > 0 ? trimmed : DEFAULT_MODEL_BASE
-  const doc = buildSystemFromFiles(files)
-  const parts = [base, ASSISTANT_MARKDOWN_HINT]
-  if (doc) parts.push(doc)
-  return parts.join("\n\n")
+/** Context passed as provider system: wrapped library file text only (empty when none). */
+export function composeChatSystem(files: { plaintext: string }[]): string {
+  return buildSystemFromFiles(files) ?? ""
 }
 
 export function turnsFromClientMessages(
@@ -59,7 +44,10 @@ export async function completeOpenAI(
   system: string,
   turns: ChatTurn[]
 ): Promise<LlmCompletionResult> {
-  const apiMessages: ChatCompletionMessageParam[] = [{ role: "system", content: system }]
+  const apiMessages: ChatCompletionMessageParam[] = []
+  if (system.trim().length > 0) {
+    apiMessages.push({ role: "system", content: system })
+  }
   for (const t of turns) {
     apiMessages.push({ role: t.role, content: t.content })
   }
@@ -90,7 +78,7 @@ export async function completeAnthropic(
   const res = await client.messages.create({
     model,
     max_tokens: 16384,
-    system,
+    ...(system.trim().length > 0 ? { system } : {}),
     messages: turns.map((t) => ({
       role: t.role,
       content: t.content,
@@ -121,7 +109,7 @@ export async function completeGemini(
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
     model: modelId,
-    systemInstruction: system,
+    systemInstruction: system.trim().length > 0 ? system : undefined,
   })
 
   if (turns.length === 0) {

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     ? body.selectedLibraryIds.filter((x): x is string => typeof x === "string")
     : []
 
-  const block = getLibrarySelectionBlockMessage(ids)
+  const block = getLibrarySelectionBlockMessage(ids, modelId)
   if (block) {
     return NextResponse.json({ error: block, librarySelectionBlocked: true }, { status: 400 })
   }

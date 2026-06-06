@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "method": "chars/4 (approx)",
+  "version": 3,
+  "method": "provider precalc (offline) + chars/4 fallback",
   "byManifestId": {
     "hcp-specialty": 347,
     "hcp-list": 378456,
@@ -46,109 +46,279 @@
       "estimatedTokens": 347,
       "rows": 54,
       "columns": 2,
-      "sizeBytes": 1288
+      "sizeBytes": 1288,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 414,
+        "gpt-5.4-mini": 414,
+        "gemini-3.1-flash-lite": 400,
+        "gemini-3.1-pro-preview": 400,
+        "claude-opus-4-7": 805,
+        "claude-sonnet-4-6": 519
+      },
+      "maxLibraryPromptTokens": 805
     },
     "hcp_list.csv": {
       "estimatedTokens": 378456,
       "rows": 18907,
       "columns": 14,
-      "sizeBytes": 1513742
+      "sizeBytes": 1513742,
+      "libraryPromptTokensByModel": {
+        "gemini-3.1-flash-lite": 1024584,
+        "gemini-3.1-pro-preview": 1024584,
+        "gpt-5.5": 654942,
+        "gpt-5.4-mini": 654942,
+        "claude-opus-4-7": 1024522,
+        "claude-sonnet-4-6": 769755
+      },
+      "maxLibraryPromptTokens": 1024584
     },
     "copay_activity.csv": {
       "estimatedTokens": 967,
       "rows": 276,
       "columns": 2,
-      "sizeBytes": 3776
+      "sizeBytes": 3776,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 2520,
+        "gpt-5.4-mini": 2520,
+        "gemini-3.1-flash-lite": 3795,
+        "gemini-3.1-pro-preview": 3795,
+        "claude-opus-4-7": 2548,
+        "claude-sonnet-4-6": 2527
+      },
+      "maxLibraryPromptTokens": 3795
     },
     "cost_activity.csv": {
       "estimatedTokens": 8721,
       "rows": 1197,
       "columns": 4,
-      "sizeBytes": 34793
+      "sizeBytes": 34793,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 19102,
+        "gpt-5.4-mini": 19102,
+        "gemini-3.1-flash-lite": 27551,
+        "gemini-3.1-pro-preview": 27551,
+        "claude-opus-4-7": 22033,
+        "claude-sonnet-4-6": 19424
+      },
+      "maxLibraryPromptTokens": 27551
     },
     "speaker_activity.csv": {
       "estimatedTokens": 10385,
       "rows": 1277,
       "columns": 4,
-      "sizeBytes": 41444
+      "sizeBytes": 41444,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 18917,
+        "gpt-5.4-mini": 18917,
+        "gemini-3.1-flash-lite": 26218,
+        "gemini-3.1-pro-preview": 26218,
+        "claude-opus-4-7": 26725,
+        "claude-sonnet-4-6": 20652
+      },
+      "maxLibraryPromptTokens": 26725
     },
     "website_activity.csv": {
       "estimatedTokens": 6773,
       "rows": 801,
       "columns": 5,
-      "sizeBytes": 26995
+      "sizeBytes": 26995,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 15074,
+        "gpt-5.4-mini": 15074,
+        "gemini-3.1-flash-lite": 26989,
+        "gemini-3.1-pro-preview": 26989,
+        "claude-opus-4-7": 15109,
+        "claude-sonnet-4-6": 15082
+      },
+      "maxLibraryPromptTokens": 26989
     },
     "email_activity.csv": {
       "estimatedTokens": 3475432,
       "rows": 80158,
       "columns": 9,
-      "sizeBytes": 13901634
+      "sizeBytes": 13901634,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 6277,
+        "gpt-5.4-mini": 6277,
+        "gemini-3.1-flash-lite": 8998,
+        "gemini-3.1-pro-preview": 8998,
+        "claude-opus-4-7": 8930,
+        "claude-sonnet-4-6": 7363
+      },
+      "maxLibraryPromptTokens": 8998
     },
     "sample_activity.csv": {
       "estimatedTokens": 68942,
       "rows": 2894,
       "columns": 9,
-      "sizeBytes": 275672
+      "sizeBytes": 275672,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 122931,
+        "gpt-5.4-mini": 122931,
+        "gemini-3.1-flash-lite": 175926,
+        "gemini-3.1-pro-preview": 175926,
+        "claude-opus-4-7": 170247,
+        "claude-sonnet-4-6": 135328
+      },
+      "maxLibraryPromptTokens": 175926
     },
     "speaker_hcp_activity.csv": {
       "estimatedTokens": 151203,
       "rows": 29310,
       "columns": 3,
-      "sizeBytes": 604707
+      "sizeBytes": 604707,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 295795,
+        "gpt-5.4-mini": 295795,
+        "gemini-3.1-flash-lite": 604727,
+        "gemini-3.1-pro-preview": 604727,
+        "claude-opus-4-7": 295833,
+        "claude-sonnet-4-6": 295804
+      },
+      "maxLibraryPromptTokens": 604727
     },
     "paidsearch_activity.csv": {
       "estimatedTokens": 2936504,
       "rows": 111264,
       "columns": 9,
-      "sizeBytes": 11745913
+      "sizeBytes": 11745913,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 5830,
+        "gpt-5.4-mini": 5830,
+        "gemini-3.1-flash-lite": 6848,
+        "gemini-3.1-pro-preview": 6848,
+        "claude-opus-4-7": 8005,
+        "claude-sonnet-4-6": 6797
+      },
+      "maxLibraryPromptTokens": 8005
     },
     "paidsocial_activity.csv": {
       "estimatedTokens": 5835259,
       "rows": 68010,
       "columns": 24,
-      "sizeBytes": 23340931
+      "sizeBytes": 23340931,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 19820,
+        "gpt-5.4-mini": 19820,
+        "gemini-3.1-flash-lite": 24095,
+        "gemini-3.1-pro-preview": 24095,
+        "claude-opus-4-7": 29809,
+        "claude-sonnet-4-6": 25230
+      },
+      "maxLibraryPromptTokens": 29809
     },
     "digitalmedia_activity.csv": {
       "estimatedTokens": 36512961,
       "rows": 346962,
       "columns": 17,
-      "sizeBytes": 146069441
+      "sizeBytes": 146069441,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 16271,
+        "gpt-5.4-mini": 16271,
+        "gemini-3.1-flash-lite": 20599,
+        "gemini-3.1-pro-preview": 20599,
+        "claude-opus-4-7": 25254,
+        "claude-sonnet-4-6": 19181
+      },
+      "maxLibraryPromptTokens": 25254
     },
     "claims_processing_activity.csv": {
       "estimatedTokens": 13214880,
       "rows": 749176,
       "columns": 4,
-      "sizeBytes": 52859404
+      "sizeBytes": 52859404,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 2141,
+        "gpt-5.4-mini": 2141,
+        "gemini-3.1-flash-lite": 3733,
+        "gemini-3.1-pro-preview": 3733,
+        "claude-opus-4-7": 2829,
+        "claude-sonnet-4-6": 2361
+      },
+      "maxLibraryPromptTokens": 3733
     },
     "claims_status.csv": {
       "estimatedTokens": 5130515,
       "rows": 139137,
       "columns": 12,
-      "sizeBytes": 20521971
+      "sizeBytes": 20521971,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 5426,
+        "gpt-5.4-mini": 5426,
+        "gemini-3.1-flash-lite": 8523,
+        "gemini-3.1-pro-preview": 8523,
+        "claude-opus-4-7": 6482,
+        "claude-sonnet-4-6": 5815
+      },
+      "maxLibraryPromptTokens": 8523
     },
     "dim_patient.csv": {
       "estimatedTokens": 5405712,
       "rows": 294917,
       "columns": 13,
-      "sizeBytes": 21622757
+      "sizeBytes": 21622757,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 4133,
+        "gpt-5.4-mini": 4133,
+        "gemini-3.1-flash-lite": 5423,
+        "gemini-3.1-pro-preview": 5423,
+        "claude-opus-4-7": 4999,
+        "claude-sonnet-4-6": 4418
+      },
+      "maxLibraryPromptTokens": 5423
     },
     "hcp_prescribing_activity.csv": {
       "estimatedTokens": 8338622,
       "rows": 388830,
       "columns": 11,
-      "sizeBytes": 33354377
+      "sizeBytes": 33354377,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 4258,
+        "gpt-5.4-mini": 4258,
+        "gemini-3.1-flash-lite": 6165,
+        "gemini-3.1-pro-preview": 6165,
+        "claude-opus-4-7": 5279,
+        "claude-sonnet-4-6": 4543
+      },
+      "maxLibraryPromptTokens": 6165
     },
     "hcp_specialty_zip.csv": {
       "estimatedTokens": 4769721,
       "rows": 491109,
       "columns": 7,
-      "sizeBytes": 19078784
+      "sizeBytes": 19078784,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 2070,
+        "gpt-5.4-mini": 2070,
+        "gemini-3.1-flash-lite": 3771,
+        "gemini-3.1-pro-preview": 3771,
+        "claude-opus-4-7": 2451,
+        "claude-sonnet-4-6": 2254
+      },
+      "maxLibraryPromptTokens": 3771
     },
     "sales_rep_call_activity.csv": {
       "estimatedTokens": 7220900,
       "rows": 141019,
       "columns": 17,
-      "sizeBytes": 28883497
+      "sizeBytes": 28883497,
+      "libraryPromptTokensByModel": {
+        "gpt-5.5": 8162,
+        "gpt-5.4-mini": 8162,
+        "gemini-3.1-flash-lite": 10642,
+        "gemini-3.1-pro-preview": 10642,
+        "claude-opus-4-7": 12567,
+        "claude-sonnet-4-6": 9765
+      },
+      "maxLibraryPromptTokens": 12567
     }
+  },
+  "fileSeparatorTokens": {
+    "gpt-5.5": 12,
+    "gpt-5.4-mini": 12,
+    "gemini-3.1-flash-lite": 5,
+    "gemini-3.1-pro-preview": 5,
+    "claude-opus-4-7": 14,
+    "claude-sonnet-4-6": 10
   }
 }

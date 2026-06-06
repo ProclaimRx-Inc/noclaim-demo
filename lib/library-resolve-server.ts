@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from "fs"
 import { join, normalize, relative, resolve } from "path"
 import {
+  isLibraryFileBlockedForModel,
   formatBlockedLibrarySelectionMessage,
-  isLibraryFileBlockedByEstimatedTokens,
 } from "@/lib/library-file-token-policy"
 import { readLibraryFileStatsFromDisk } from "@/lib/library-token-meta-server"
 import type { LibraryManifestEntry } from "@/lib/types"
@@ -38,7 +38,7 @@ export function readLibraryManifestFromDisk(): LibraryManifestEntry[] {
   }
 }
 
-export function getLibrarySelectionBlockMessage(ids: string[]): string | null {
+export function getLibrarySelectionBlockMessage(ids: string[], modelId: string): string | null {
   if (!Array.isArray(ids) || ids.length === 0) return null
   const manifest = readLibraryManifestFromDisk()
   const stats = readLibraryFileStatsFromDisk()
@@ -47,24 +47,30 @@ export function getLibrarySelectionBlockMessage(ids: string[]): string | null {
   for (const id of ids) {
     const entry = byId.get(id)
     if (!entry) continue
-    if (isLibraryFileBlockedByEstimatedTokens(stats[entry.path])) names.push(entry.name)
+    if (isLibraryFileBlockedForModel(stats[entry.path], modelId)) names.push(entry.name)
   }
   if (names.length === 0) return null
-  return formatBlockedLibrarySelectionMessage(names)
+  return formatBlockedLibrarySelectionMessage(names, modelId)
 }
 
-export function resolveLibraryPlaintextFilesByIds(ids: string[]): { name: string; plaintext: string }[] {
+export function resolveLibraryPlaintextFilesByIds(
+  ids: string[]
+): { name: string; path: string; plaintext: string }[] {
   if (!Array.isArray(ids) || ids.length === 0) return []
   const manifest = readLibraryManifestFromDisk()
   const byId = new Map(manifest.map((e) => [e.id, e]))
-  const out: { name: string; plaintext: string }[] = []
+  const out: { name: string; path: string; plaintext: string }[] = []
   for (const id of ids) {
     const entry = byId.get(id)
     if (!entry) continue
     const abs = safeResolvedFilePath(entry.path)
     if (!abs || !existsSync(abs)) continue
     const content = readFileSync(abs, "utf8")
-    out.push({ name: entry.name, plaintext: buildPlaintextForLibraryFile(entry.name, entry.path, content) })
+    out.push({
+      name: entry.name,
+      path: entry.path,
+      plaintext: buildPlaintextForLibraryFile(entry.name, entry.path, content),
+    })
   }
   return out
 }

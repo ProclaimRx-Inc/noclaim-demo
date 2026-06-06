@@ -37,7 +37,7 @@ export const LLM_MODEL_GROUPS: LlmModelGroup[] = [
 
 export const DEFAULT_LLM_MODEL_ID = "gpt-5.4-mini"
 
-/** Every allowlisted model id (for prompt files and validation). */
+/** Every allowlisted model id (for validation). */
 export const ALLOWED_LLM_MODEL_IDS: string[] = LLM_MODEL_GROUPS.flatMap((g) => g.models.map((m) => m.id))
 
 const MODEL_TO_PROVIDER: Record<string, LlmProvider> = {}
