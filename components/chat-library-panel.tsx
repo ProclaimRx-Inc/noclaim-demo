@@ -217,7 +217,9 @@ export function ChatLibraryPanel({ modelId }: ChatLibraryPanelProps) {
                               <p className="text-amber-700 dark:text-amber-500">
                                 {stats.truncation.timeFrame
                                   ? `Time frame: ${stats.truncation.timeFrame.start} → ${stats.truncation.timeFrame.end}`
-                                  : "Kept leading rows (no date column)"}
+                                  : stats.truncation.keyRange
+                                    ? `${stats.truncation.keyRange.column.toUpperCase()} range: ${stats.truncation.keyRange.start} → ${stats.truncation.keyRange.end}`
+                                    : "Kept leading rows (no date column)"}
                               </p>
                               <p>
                                 from {stats.truncation.full.rows.toLocaleString()} rows ·{" "}

@@ -53,6 +53,8 @@ export interface LibraryFileStats {
     dateColumn: string | null
     /** Kept date window, or null for row-cap files. */
     timeFrame: { start: string; end: string } | null
+    /** Kept range of a sort key (e.g. NPI) for sorted row-cap files, else null. */
+    keyRange?: { column: string; start: string; end: string } | null
     /** Stats of the original full file before truncation. */
     full: { rows: number; sizeBytes: number; estimatedTokens: number }
   }

@@ -288,6 +288,7 @@ function main() {
               budgetTokens: trunc.budgetTokens,
               dateColumn: trunc.dateColumn ?? null,
               timeFrame: trunc.timeFrame ?? null,
+              keyRange: trunc.keyRange ?? null,
               full: trunc.full,
             },
           }

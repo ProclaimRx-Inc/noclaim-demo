@@ -11,7 +11,7 @@
   },
   "byManifestId": {
     "hcp-specialty": 347,
-    "hcp-list": 184040,
+    "hcp-list": 183950,
     "copay-activity": 967,
     "cost-activity": 8721,
     "speaker-activity": 10385,
@@ -31,7 +31,7 @@
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
-    "hcp_list.csv": 184040,
+    "hcp_list.csv": 183950,
     "copay_activity.csv": 967,
     "cost_activity.csv": 8721,
     "speaker_activity.csv": 10385,
@@ -66,28 +66,33 @@
       "maxLibraryPromptTokens": 805
     },
     "hcp_list.csv": {
-      "estimatedTokens": 184040,
-      "rows": 9188,
+      "estimatedTokens": 183950,
+      "rows": 9167,
       "columns": 14,
-      "sizeBytes": 736079,
+      "sizeBytes": 735723,
       "libraryPromptTokensByModel": {
-        "gemini-3.1-flash-lite": 494936,
-        "gemini-3.1-pro-preview": 494936,
-        "gpt-5.5": 318110,
-        "gpt-5.4-mini": 318110,
-        "claude-opus-4-7": 499997,
-        "claude-sonnet-4-6": 375279
+        "gemini-3.1-flash-lite": 492980,
+        "gemini-3.1-pro-preview": 492980,
+        "gpt-5.5": 316361,
+        "gpt-5.4-mini": 316361,
+        "claude-opus-4-7": 499950,
+        "claude-sonnet-4-6": 377064
       },
-      "maxLibraryPromptTokens": 499997,
+      "maxLibraryPromptTokens": 499950,
       "truncation": {
         "strategy": "row-cap",
         "budgetTokens": 500000,
         "dateColumn": null,
         "timeFrame": null,
+        "keyRange": {
+          "column": "npi",
+          "start": "0000321165",
+          "end": "4243630594"
+        },
         "full": {
-          "rows": 18907,
-          "sizeBytes": 1513742,
-          "estimatedTokens": 378456
+          "rows": 21435,
+          "sizeBytes": 1720507,
+          "estimatedTokens": 430146
         }
       }
     },
@@ -188,6 +193,7 @@
           "start": "2025-02-06",
           "end": "2025-03-06"
         },
+        "keyRange": null,
         "full": {
           "rows": 80158,
           "sizeBytes": 13100036,
@@ -257,6 +263,7 @@
           "start": "2024-04-26",
           "end": "2024-06-05"
         },
+        "keyRange": null,
         "full": {
           "rows": 111264,
           "sizeBytes": 11745913,
@@ -291,6 +298,7 @@
           "start": "2024-05-07",
           "end": "2024-05-19"
         },
+        "keyRange": null,
         "full": {
           "rows": 68010,
           "sizeBytes": 23340931,
@@ -325,6 +333,7 @@
           "start": "2024-03-30",
           "end": "2024-03-30"
         },
+        "keyRange": null,
         "full": {
           "rows": 346962,
           "sizeBytes": 146069441,
@@ -359,6 +368,7 @@
           "start": "2025-02-14",
           "end": "2025-02-22"
         },
+        "keyRange": null,
         "full": {
           "rows": 749176,
           "sizeBytes": 38625060,
@@ -393,6 +403,7 @@
           "start": "2025-01-27",
           "end": "2025-02-16"
         },
+        "keyRange": null,
         "full": {
           "rows": 139137,
           "sizeBytes": 15239952,
@@ -419,6 +430,7 @@
         "budgetTokens": 500000,
         "dateColumn": null,
         "timeFrame": null,
+        "keyRange": null,
         "full": {
           "rows": 294917,
           "sizeBytes": 21622757,
@@ -453,6 +465,7 @@
           "start": "2025-03-05",
           "end": "2025-03-13"
         },
+        "keyRange": null,
         "full": {
           "rows": 388830,
           "sizeBytes": 33354377,
@@ -479,6 +492,7 @@
         "budgetTokens": 500000,
         "dateColumn": null,
         "timeFrame": null,
+        "keyRange": null,
         "full": {
           "rows": 491109,
           "sizeBytes": 19078784,
@@ -513,6 +527,7 @@
           "start": "2024-08-24",
           "end": "2024-09-06"
         },
+        "keyRange": null,
         "full": {
           "rows": 141019,
           "sizeBytes": 28883497,

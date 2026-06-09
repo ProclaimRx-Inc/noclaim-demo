@@ -177,15 +177,20 @@
     "strategy": "row-cap",
     "dateColumn": null,
     "timeFrame": null,
+    "keyRange": {
+      "column": "npi",
+      "start": "0000321165",
+      "end": "4243630594"
+    },
     "budgetTokens": 500000,
     "anchorModel": "claude-opus-4-7",
-    "keptRows": 9188,
-    "keptAnchorTokens": 499997,
-    "keptEstimatedTokens": 184040,
+    "keptRows": 9167,
+    "keptAnchorTokens": 499950,
+    "keptEstimatedTokens": 183950,
     "full": {
-      "rows": 18907,
-      "sizeBytes": 1513742,
-      "estimatedTokens": 378456
+      "rows": 21435,
+      "sizeBytes": 1720507,
+      "estimatedTokens": 430146
     }
   }
 }

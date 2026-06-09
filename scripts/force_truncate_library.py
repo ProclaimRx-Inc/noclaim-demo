@@ -95,15 +95,16 @@ DATE_COLUMN: dict[str, str | None] = {
     "hcp_prescribing_activity.csv": None,  # set below from header presence
     "sales_rep_call_activity.csv": "call_date",
     "hcp_specialty_zip.csv": None,
-    # HCP directory — no date column; its committed CSV is already the full curated
-    # source (parquet has extra cols/rows that were intentionally dropped), so it is
-    # truncated in place rather than re-derived from parquet.
+    # HCP directory — no date column. Re-derived from parquet sorted by NPI (empties
+    # excluded), then row-capped; we report the kept NPI range to compare to the
+    # main platform.
     "hcp_list.csv": None,
 }
 DATE_COLUMN["hcp_prescribing_activity.csv"] = "date_submitted"
 
-# Stems re-derived from parquet here (no dedicated cleaner). Only these read parquet.
-DERIVE_FROM_PARQUET = {"paidsearch_activity", "paidsocial_activity", "email_activity"}
+# Date-less tables that are row-capped after sorting by a key column; we report the
+# kept key range (min -> max) instead of a time frame.
+SORT_KEY: dict[str, str] = {"hcp_list.csv": "npi"}
 
 
 def build_plaintext(name: str, rel_path: str, content: str) -> str:
@@ -247,6 +248,27 @@ def derive_email() -> None:
     print(f"Derived email_activity.csv ({t.num_rows:,} rows, {len(out_cols)} columns)")
 
 
+def derive_hcp_list() -> None:
+    """hcp_list: drop empty/null npi, sort ascending by npi, project committed columns.
+
+    NPI is a 10-digit zero-padded string, so lexical sort == numeric order and leading
+    zeros are preserved. The extra parquet columns (address2, ped_hcp_priority) are
+    dropped to match the committed shape.
+    """
+    t = pq.read_table(LIB / "hcp_list.parquet")
+    npi = pc.fill_null(t.column("npi"), "")
+    keep = pc.greater(pc.utf8_length(pc.utf8_trim_whitespace(npi)), 0)
+    t = t.filter(keep)
+    t = t.sort_by([("npi", "ascending")])
+    out_cols = [
+        "npi", "first_name", "minit", "last_name", "address1", "city", "state", "zip",
+        "specialty", "degree", "can_share", "can_contact", "bzs_hcp_priority", "neurexa_target",
+    ]
+    out_cols = [c for c in out_cols if c in t.column_names]
+    _write_csv(out_cols, _table_to_rows(t, out_cols), LIB / "hcp_list.csv")
+    print(f"Derived hcp_list.csv ({t.num_rows:,} rows sorted by npi, {len(out_cols)} columns)")
+
+
 # --------------------------------------------------------------------------------------
 # Truncation.
 # --------------------------------------------------------------------------------------
@@ -371,9 +393,15 @@ def main() -> int:
         print(f"Processing only: {', '.join(sorted(targets))}")
 
     # 1. Derive the tables that have no dedicated cleaner (only the selected ones).
-    for stem in ("paidsearch_activity", "paidsocial_activity", "email_activity"):
+    derivers = {
+        "paidsearch_activity": lambda: derive_paid_table("paidsearch_activity"),
+        "paidsocial_activity": lambda: derive_paid_table("paidsocial_activity"),
+        "email_activity": derive_email,
+        "hcp_list": derive_hcp_list,
+    }
+    for stem, fn in derivers.items():
         if selected(f"{stem}.csv") and (LIB / f"{stem}.parquet").is_file():
-            (derive_email if stem == "email_activity" else lambda s=stem: derive_paid_table(s))()
+            fn()
 
     # 2. Truncate selected tables; merge into any existing truncation metadata.
     truncation: dict[str, object] = {}
@@ -415,10 +443,26 @@ def main() -> int:
         abs_path.write_text(new_content, encoding="utf-8")
         kept_estimate = content_tokens(name, rel_path, new_content)
 
+        # For sorted row-cap tables, report the kept range of the sort key (e.g. NPI).
+        key_col = SORT_KEY.get(rel_path)
+        key_range = None
+        if key_col:
+            hdr_cols = next(csv.reader([header]))
+            if key_col in hdr_cols and kept:
+                ki = hdr_cols.index(key_col)
+                keys = []
+                for line in kept:
+                    fields = next(csv.reader([line]))
+                    if ki < len(fields) and fields[ki].strip():
+                        keys.append(fields[ki].strip())
+                if keys:
+                    key_range = {"column": key_col, "start": min(keys), "end": max(keys)}
+
         truncation[rel_path] = {
             "strategy": strategy,
             "dateColumn": date_col if strategy == "date-window" else None,
             "timeFrame": ({"start": start, "end": end} if strategy == "date-window" else None),
+            "keyRange": key_range,
             "budgetTokens": TOKEN_BUDGET,
             "anchorModel": ANCHOR_MODEL,
             "keptRows": len(kept),
@@ -426,7 +470,12 @@ def main() -> int:
             "keptEstimatedTokens": kept_estimate,
             "full": {"rows": full_rows, "sizeBytes": full_size, "estimatedTokens": full_tokens},
         }
-        frame = f"{start} -> {end}" if start else f"first {len(kept):,} rows"
+        if start:
+            frame = f"{start} -> {end}"
+        elif key_range:
+            frame = f"{key_col} {key_range['start']} -> {key_range['end']}"
+        else:
+            frame = f"first {len(kept):,} rows"
         print(
             f"Truncated {rel_path}: {full_rows:,} -> {len(kept):,} rows "
             f"({anchor_tokens:,} real / ~{kept_estimate:,} est tok, {strategy}, {frame})"
