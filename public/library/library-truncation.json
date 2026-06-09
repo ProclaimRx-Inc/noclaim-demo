@@ -172,5 +172,20 @@
       "sizeBytes": 19078784,
       "estimatedTokens": 4769721
     }
+  },
+  "hcp_list.csv": {
+    "strategy": "row-cap",
+    "dateColumn": null,
+    "timeFrame": null,
+    "budgetTokens": 500000,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 9188,
+    "keptAnchorTokens": 499997,
+    "keptEstimatedTokens": 184040,
+    "full": {
+      "rows": 18907,
+      "sizeBytes": 1513742,
+      "estimatedTokens": 378456
+    }
   }
 }

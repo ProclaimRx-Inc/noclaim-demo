@@ -55,6 +55,7 @@ import io
 import json
 import math
 import os
+import sys
 import urllib.request
 from pathlib import Path
 
@@ -94,8 +95,15 @@ DATE_COLUMN: dict[str, str | None] = {
     "hcp_prescribing_activity.csv": None,  # set below from header presence
     "sales_rep_call_activity.csv": "call_date",
     "hcp_specialty_zip.csv": None,
+    # HCP directory — no date column; its committed CSV is already the full curated
+    # source (parquet has extra cols/rows that were intentionally dropped), so it is
+    # truncated in place rather than re-derived from parquet.
+    "hcp_list.csv": None,
 }
 DATE_COLUMN["hcp_prescribing_activity.csv"] = "date_submitted"
+
+# Stems re-derived from parquet here (no dedicated cleaner). Only these read parquet.
+DERIVE_FROM_PARQUET = {"paidsearch_activity", "paidsocial_activity", "email_activity"}
 
 
 def build_plaintext(name: str, rel_path: str, content: str) -> str:
@@ -353,21 +361,39 @@ def main() -> int:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     name_by_path = {e["path"]: e["name"] for e in manifest if isinstance(e, dict)}
 
-    # 1. Derive the three tables that have no dedicated cleaner.
-    if (LIB / "paidsearch_activity.parquet").is_file():
-        derive_paid_table("paidsearch_activity")
-    if (LIB / "paidsocial_activity.parquet").is_file():
-        derive_paid_table("paidsocial_activity")
-    if (LIB / "email_activity.parquet").is_file():
-        derive_email()
+    # Optional CLI args limit which paths are (re)processed. Without args, all are done.
+    # Pass specific paths (e.g. "hcp_list.csv") to truncate just those WITHOUT touching
+    # the already-truncated CSVs of the others on disk.
+    args = sys.argv[1:]
+    targets = set(args) if args else None
+    selected = lambda path: targets is None or path in targets  # noqa: E731
+    if targets:
+        print(f"Processing only: {', '.join(sorted(targets))}")
 
-    # 2. Truncate every target table.
+    # 1. Derive the tables that have no dedicated cleaner (only the selected ones).
+    for stem in ("paidsearch_activity", "paidsocial_activity", "email_activity"):
+        if selected(f"{stem}.csv") and (LIB / f"{stem}.parquet").is_file():
+            (derive_email if stem == "email_activity" else lambda s=stem: derive_paid_table(s))()
+
+    # 2. Truncate selected tables; merge into any existing truncation metadata.
     truncation: dict[str, object] = {}
+    if TRUNCATION_PATH.is_file():
+        try:
+            existing = json.loads(TRUNCATION_PATH.read_text(encoding="utf-8"))
+            if isinstance(existing, dict):
+                truncation = existing
+        except json.JSONDecodeError:
+            pass
+
+    processed: list[str] = []
     for rel_path, date_col in DATE_COLUMN.items():
+        if not selected(rel_path):
+            continue
         abs_path = LIB / rel_path
         if not abs_path.is_file():
             print(f"  skip (no full CSV on disk): {rel_path}")
             continue
+        processed.append(rel_path)
         name = name_by_path.get(rel_path, rel_path)
 
         full_text, lines = _read_full_csv(abs_path)
@@ -413,7 +439,7 @@ def main() -> int:
     #    generator computes real stats and they are no longer blocked.
     if FULL_STATS_PATH.is_file():
         overrides = json.loads(FULL_STATS_PATH.read_text(encoding="utf-8"))
-        removed = [p for p in truncation if p in overrides]
+        removed = [p for p in processed if p in overrides]
         for p in removed:
             del overrides[p]
         FULL_STATS_PATH.write_text(json.dumps(overrides, indent=2) + "\n", encoding="utf-8")

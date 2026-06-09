@@ -11,7 +11,7 @@
   },
   "byManifestId": {
     "hcp-specialty": 347,
-    "hcp-list": 378456,
+    "hcp-list": 184040,
     "copay-activity": 967,
     "cost-activity": 8721,
     "speaker-activity": 10385,
@@ -31,7 +31,7 @@
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
-    "hcp_list.csv": 378456,
+    "hcp_list.csv": 184040,
     "copay_activity.csv": 967,
     "cost_activity.csv": 8721,
     "speaker_activity.csv": 10385,
@@ -66,19 +66,30 @@
       "maxLibraryPromptTokens": 805
     },
     "hcp_list.csv": {
-      "estimatedTokens": 378456,
-      "rows": 18907,
+      "estimatedTokens": 184040,
+      "rows": 9188,
       "columns": 14,
-      "sizeBytes": 1513742,
+      "sizeBytes": 736079,
       "libraryPromptTokensByModel": {
-        "gemini-3.1-flash-lite": 1024584,
-        "gemini-3.1-pro-preview": 1024584,
-        "gpt-5.5": 654942,
-        "gpt-5.4-mini": 654942,
-        "claude-opus-4-7": 1024522,
-        "claude-sonnet-4-6": 769755
+        "gemini-3.1-flash-lite": 494936,
+        "gemini-3.1-pro-preview": 494936,
+        "gpt-5.5": 318110,
+        "gpt-5.4-mini": 318110,
+        "claude-opus-4-7": 499997,
+        "claude-sonnet-4-6": 375279
       },
-      "maxLibraryPromptTokens": 1024584
+      "maxLibraryPromptTokens": 499997,
+      "truncation": {
+        "strategy": "row-cap",
+        "budgetTokens": 500000,
+        "dateColumn": null,
+        "timeFrame": null,
+        "full": {
+          "rows": 18907,
+          "sizeBytes": 1513742,
+          "estimatedTokens": 378456
+        }
+      }
     },
     "copay_activity.csv": {
       "estimatedTokens": 967,
