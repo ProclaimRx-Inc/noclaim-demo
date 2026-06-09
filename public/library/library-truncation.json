@@ -3,12 +3,14 @@
     "strategy": "date-window",
     "dateColumn": "date",
     "timeFrame": {
-      "start": "2024-03-13",
-      "end": "2024-07-18"
+      "start": "2024-04-26",
+      "end": "2024-06-05"
     },
     "budgetTokens": 500000,
-    "keptRows": 18285,
-    "keptEstimatedTokens": 497053,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 5972,
+    "keptAnchorTokens": 476138,
+    "keptEstimatedTokens": 161951,
     "full": {
       "rows": 111264,
       "sizeBytes": 11745913,
@@ -19,12 +21,14 @@
     "strategy": "date-window",
     "dateColumn": "date",
     "timeFrame": {
-      "start": "2024-04-20",
-      "end": "2024-06-06"
+      "start": "2024-05-07",
+      "end": "2024-05-19"
     },
     "budgetTokens": 500000,
-    "keptRows": 5779,
-    "keptEstimatedTokens": 493074,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 1601,
+    "keptAnchorTokens": 466541,
+    "keptEstimatedTokens": 136597,
     "full": {
       "rows": 68010,
       "sizeBytes": 23340931,
@@ -35,12 +39,14 @@
     "strategy": "date-window",
     "dateColumn": "created_date",
     "timeFrame": {
-      "start": "2024-11-18",
-      "end": "2025-03-20"
+      "start": "2025-02-06",
+      "end": "2025-03-06"
     },
     "budgetTokens": 500000,
-    "keptRows": 12546,
-    "keptEstimatedTokens": 494818,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 4726,
+    "keptAnchorTokens": 470255,
+    "keptEstimatedTokens": 194960,
     "full": {
       "rows": 80158,
       "sizeBytes": 13100036,
@@ -51,12 +57,14 @@
     "strategy": "date-window",
     "dateColumn": "date",
     "timeFrame": {
-      "start": "2024-03-28",
-      "end": "2024-04-02"
+      "start": "2024-03-30",
+      "end": "2024-03-30"
     },
     "budgetTokens": 500000,
-    "keptRows": 4567,
-    "keptEstimatedTokens": 458142,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 906,
+    "keptAnchorTokens": 204449,
+    "keptEstimatedTokens": 89239,
     "full": {
       "rows": 346962,
       "sizeBytes": 146069441,
@@ -67,12 +75,14 @@
     "strategy": "date-window",
     "dateColumn": "datetime_status",
     "timeFrame": {
-      "start": "2025-02-08",
-      "end": "2025-02-28"
+      "start": "2025-02-14",
+      "end": "2025-02-22"
     },
     "budgetTokens": 500000,
-    "keptRows": 38040,
-    "keptEstimatedTokens": 490159,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 16268,
+    "keptAnchorTokens": 447129,
+    "keptEstimatedTokens": 209785,
     "full": {
       "rows": 749176,
       "sizeBytes": 38625060,
@@ -83,12 +93,14 @@
     "strategy": "date-window",
     "dateColumn": "datetime_start",
     "timeFrame": {
-      "start": "2025-01-11",
-      "end": "2025-03-04"
+      "start": "2025-01-27",
+      "end": "2025-02-16"
     },
     "budgetTokens": 500000,
-    "keptRows": 18091,
-    "keptEstimatedTokens": 495940,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 7138,
+    "keptAnchorTokens": 462130,
+    "keptEstimatedTokens": 195678,
     "full": {
       "rows": 139137,
       "sizeBytes": 15239952,
@@ -100,8 +112,10 @@
     "dateColumn": null,
     "timeFrame": null,
     "budgetTokens": 500000,
-    "keptRows": 26959,
-    "keptEstimatedTokens": 499988,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 10551,
+    "keptAnchorTokens": 499982,
+    "keptEstimatedTokens": 203685,
     "full": {
       "rows": 294917,
       "sizeBytes": 21622757,
@@ -112,12 +126,14 @@
     "strategy": "date-window",
     "dateColumn": "date_submitted",
     "timeFrame": {
-      "start": "2025-02-26",
-      "end": "2025-03-19"
+      "start": "2025-03-05",
+      "end": "2025-03-13"
     },
     "budgetTokens": 500000,
-    "keptRows": 22807,
-    "keptEstimatedTokens": 490455,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 9352,
+    "keptAnchorTokens": 485069,
+    "keptEstimatedTokens": 200951,
     "full": {
       "rows": 388830,
       "sizeBytes": 33354377,
@@ -128,12 +144,14 @@
     "strategy": "date-window",
     "dateColumn": "call_date",
     "timeFrame": {
-      "start": "2024-08-16",
-      "end": "2024-09-15"
+      "start": "2024-08-24",
+      "end": "2024-09-06"
     },
     "budgetTokens": 500000,
-    "keptRows": 9402,
-    "keptEstimatedTokens": 483385,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 3808,
+    "keptAnchorTokens": 472881,
+    "keptEstimatedTokens": 195447,
     "full": {
       "rows": 141019,
       "sizeBytes": 28883497,
@@ -145,8 +163,10 @@
     "dateColumn": null,
     "timeFrame": null,
     "budgetTokens": 500000,
-    "keptRows": 51473,
-    "keptEstimatedTokens": 499998,
+    "anchorModel": "claude-opus-4-7",
+    "keptRows": 21676,
+    "keptAnchorTokens": 499983,
+    "keptEstimatedTokens": 210534,
     "full": {
       "rows": 491109,
       "sizeBytes": 19078784,

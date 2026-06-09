@@ -55,7 +55,7 @@ Next.js 16 deprecates the root **`middleware.ts`** name in favor of **`proxy.ts`
 
 **Oversized library files:** each row shows token count and fit for the **currently selected model**. Files that exceed that model’s context window are disabled (server + UI). Switch models to see different limits—e.g. a file may fit GPT-5.5 but not Gemini Flash.
 
-**Force-truncated files (SCRUM-1197):** tables whose full data is far larger than any context window are **refetched from S3 and force-truncated to a flat ~500k-token budget** so they stay selectable instead of being permanently blocked. Tables with a date column keep the **contiguous date window centered on the median date** that fits the budget; date-less tables (e.g. `dim_patient`, `hcp_specialty_zip`) keep header + leading rows. Every file row in the library panel shows its **date range**, and force-truncated rows additionally show **“Force-truncated to fit ~500k tokens”**, the kept **time frame**, and the **original** row count / size. See `scripts/force_truncate_library.py`.
+**Force-truncated files (SCRUM-1197):** tables whose full data is far larger than any context window are **refetched from S3 and force-truncated to a ~500k-token budget** so they stay selectable instead of being permanently blocked. The budget is sized against the **real Anthropic (Claude Opus) tokenizer** — chars/4 runs ~2.4× low on this CSV text — via a binary search, so the kept window actually fits. Tables with a date column keep the **contiguous date window centered on the median date** that fits the budget; date-less tables (e.g. `dim_patient`, `hcp_specialty_zip`) keep header + leading rows. The result fits every model **except gpt-5.4-mini** (272k window). Every file row in the library panel shows its **date range**, and force-truncated rows additionally show **“Force-truncated to fit ~500k tokens”**, the kept **time frame**, and the **original** row count / size. See `scripts/force_truncate_library.py`.
 
 ---
 
@@ -101,7 +101,7 @@ If you **shrink** a file enough that it no longer needs frozen stats, **remove i
 
 ### Force-truncating an oversized table to a token budget (SCRUM-1197)
 
-For tables far larger than any context window, **`scripts/force_truncate_library.py`** refetches the full source and cuts it to a flat **~500k-token** budget so it stays selectable (instead of being blocked). It keeps the **middle date window** for date-bearing tables, or **leading rows** for date-less ones, and writes the kept **time frame** + original stats to **`library-truncation.json`**.
+For tables far larger than any context window, **`scripts/force_truncate_library.py`** refetches the full source and cuts it to a **~500k-token** budget so it stays selectable (instead of being blocked). It **binary-searches against the real Anthropic Claude-Opus tokenizer** (needs `ANTHROPIC_API_KEY` in `.env`) rather than the chars/4 estimate, which runs ~2.4× low on this data. It keeps the **middle date window** for date-bearing tables, or **leading rows** for date-less ones, and writes the kept **time frame** + original stats to **`library-truncation.json`**. Run `pnpm precalculate-library-tokens` afterward to fill in exact per-model counts (Gemini typically lands highest but still within its window).
 
 ```bash
 # 1. Refetch full sources from S3 (parquet, gitignored)

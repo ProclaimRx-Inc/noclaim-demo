@@ -6,8 +6,10 @@ Background
 A handful of library CSVs are far larger than any model context window. They used
 to be cut to "header + 100 rows" on disk and shown as a hard "over context limit"
 error (blocked, unselectable). Instead we now **force-truncate them to a time
-frame** so they fit a flat token budget (~500k, chars/4 estimate matching the rest
-of the pipeline) and surface the resulting date window in the library UI.
+frame** so they fit a ~500k-token budget and surface the resulting date window in the
+library UI. The budget is sized against the **real Anthropic (Claude Opus) tokenizer**
+via a binary search — chars/4 runs ~2.4x low on this CSV text — so the kept window
+actually fits (every model except gpt-5.4-mini's 272k window). Requires ANTHROPIC_API_KEY.
 
 This script refetches nothing itself — it expects the full source parquet to be
 present under public/library/<stem>.parquet (gitignored). Pull them first, e.g.:
@@ -52,6 +54,8 @@ import csv
 import io
 import json
 import math
+import os
+import urllib.request
 from pathlib import Path
 
 import pyarrow as pa
@@ -64,8 +68,19 @@ MANIFEST_PATH = LIB / "manifest.json"
 TRUNCATION_PATH = LIB / "library-truncation.json"
 FULL_STATS_PATH = LIB / "library-full-file-stats.json"
 
-# Flat token budget per file (chars/4 estimate, matching generate-library-token-meta.cjs).
+# Real-token budget per file. We size to the REAL provider tokenizer, not chars/4
+# (which runs ~2.4x low on this CSV text). The window is chosen so the anchor model's
+# real count lands just under this budget.
 TOKEN_BUDGET = 500_000
+
+# Anchor tokenizer for the binary search: Claude Opus is the highest *working* counter
+# here (the demo's Gemini id 400s on the count API), so sizing to it keeps every model
+# at or below the budget. The full per-model counts are filled in afterwards by
+# scripts/precalculate-library-provider-tokens.mjs.
+ANCHOR_MODEL = "claude-opus-4-7"
+# Never send a count request larger than this estimate (keeps request bodies sane); the
+# real ~500k crossover sits near a ~210k chars/4 estimate, well under this cap.
+ESTIMATE_CAP = 360_000
 
 # Primary date column per table; None means "no usable date column" -> row cap.
 DATE_COLUMN: dict[str, str | None] = {
@@ -101,7 +116,43 @@ def estimate_tokens(text: str) -> int:
 
 
 def content_tokens(name: str, rel_path: str, content: str) -> int:
+    """Chars/4 estimate of the wrapped plaintext (cheap; used to bound the search)."""
     return estimate_tokens(build_plaintext(name, rel_path, content))
+
+
+def load_env() -> None:
+    env_path = REPO / ".env"
+    if not env_path.is_file():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        v = v.strip().strip('"').strip("'")
+        os.environ.setdefault(k.strip(), v)
+
+
+def anthropic_count_tokens(system: str) -> int:
+    """Real input-token count for the wrapped library text via the Anthropic API,
+    matching the chat app's shape (library text in `system`, placeholder user turn)."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set (needed for real-token sizing)")
+    body = json.dumps(
+        {"model": ANCHOR_MODEL, "system": system, "messages": [{"role": "user", "content": "."}]}
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages/count_tokens",
+        data=body,
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req) as resp:
+        return json.load(resp)["input_tokens"]
 
 
 # --------------------------------------------------------------------------------------
@@ -204,23 +255,56 @@ def _content_from_lines(header: str, data_lines: list[str]) -> str:
     return header + "\n" + "\n".join(data_lines) + "\n"
 
 
-def _truncate_row_cap(name: str, rel_path: str, header: str, data: list[str]) -> list[str]:
-    kept: list[str] = []
-    for line in data:
-        candidate = kept + [line]
-        if content_tokens(name, rel_path, _content_from_lines(header, candidate)) > TOKEN_BUDGET:
-            break
-        kept = candidate
-    return kept
+def real_tokens(name: str, rel_path: str, content: str) -> int:
+    return anthropic_count_tokens(build_plaintext(name, rel_path, content))
 
 
-def _truncate_date_window(
-    name: str, rel_path: str, header: str, data: list[str], date_col: str
-) -> tuple[list[str], str | None, str | None]:
+def _search_largest(name, rel_path, header, lines_for, kmax):
+    """Largest k in [0, kmax] whose real token count stays within the budget.
+
+    `lines_for(k)` returns the data lines for size k and must grow monotonically with k.
+    Cheap chars/4 estimate first caps how large a request we ever send to the count API,
+    then a binary search on real tokens finds the budget crossover.
+    Returns (best_k, kept_lines, real_tokens_for_best).
+    """
+    def est_k(k):
+        return content_tokens(name, rel_path, _content_from_lines(header, lines_for(k)))
+
+    hi = kmax
+    if est_k(hi) > ESTIMATE_CAP:
+        a, b = 0, kmax
+        while a < b:
+            m = (a + b + 1) // 2
+            if est_k(m) <= ESTIMATE_CAP:
+                a = m
+            else:
+                b = m - 1
+        hi = a
+
+    a, b = 0, hi
+    best_k, best_tok = 0, 0
+    while a <= b:
+        m = (a + b) // 2
+        tok = real_tokens(name, rel_path, _content_from_lines(header, lines_for(m)))
+        if tok <= TOKEN_BUDGET:
+            best_k, best_tok = m, tok
+            a = m + 1
+        else:
+            b = m - 1
+    return best_k, lines_for(best_k), best_tok
+
+
+def _truncate_row_cap(name, rel_path, header, data):
+    _, kept, tok = _search_largest(name, rel_path, header, lambda n: data[:n], len(data))
+    return kept, tok
+
+
+def _truncate_date_window(name, rel_path, header, data, date_col):
     """Keep the contiguous date window centered on the median date that fits the budget."""
     header_cols = next(csv.reader([header]))
     if date_col not in header_cols:
-        return _truncate_row_cap(name, rel_path, header, data), None, None
+        kept, tok = _truncate_row_cap(name, rel_path, header, data)
+        return kept, None, None, tok
     idx = header_cols.index(date_col)
 
     # (date_str, original_line) for rows with a usable YYYY-MM-DD date.
@@ -236,58 +320,36 @@ def _truncate_date_window(
         if len(d) >= 10 and d[4] == "-" and d[7] == "-":
             dated.append((d[:10], line))
     if not dated:
-        return _truncate_row_cap(name, rel_path, header, data), None, None
+        kept, tok = _truncate_row_cap(name, rel_path, header, data)
+        return kept, None, None, tok
 
     ordered_dates = sorted({d for d, _ in dated})
-    by_date: dict[str, list[str]] = {}
-    for d, line in dated:
-        by_date.setdefault(d, []).append(line)
+    k = len(ordered_dates)
+    mid = k // 2
 
-    def window_lines(lo: int, hi: int) -> list[str]:
+    def bounds(r):
+        return max(0, mid - r), min(k - 1, mid + r)
+
+    def window_lines(r):
+        lo, hi = bounds(r)
         window = set(ordered_dates[lo : hi + 1])
         return [line for d, line in dated if d in window]
 
-    def fits(lo: int, hi: int) -> bool:
-        content = _content_from_lines(header, window_lines(lo, hi))
-        return content_tokens(name, rel_path, content) <= TOKEN_BUDGET
+    r_max = max(mid, k - 1 - mid)
+    best_r, kept, tok = _search_largest(name, rel_path, header, window_lines, r_max)
 
-    mid = len(ordered_dates) // 2
-    lo = hi = mid
-    if not fits(lo, hi):
-        # Even the median day overflows; fall back to a row cap within that day.
-        capped = _truncate_row_cap(name, rel_path, header, by_date[ordered_dates[mid]])
-        return capped, ordered_dates[mid], ordered_dates[mid]
+    # Even the median day overflows: fall back to a row cap within that day.
+    if not kept:
+        by_date = [line for d, line in dated if d == ordered_dates[mid]]
+        kept, tok = _truncate_row_cap(name, rel_path, header, by_date)
+        return kept, ordered_dates[mid], ordered_dates[mid], tok
 
-    # Expand outward, keeping the window roughly centered, until neither side fits.
-    while True:
-        can_lo = lo > 0
-        can_hi = hi < len(ordered_dates) - 1
-        if not can_lo and not can_hi:
-            break
-        # Prefer the shorter side to stay centered.
-        prefer_low = (mid - lo) <= (hi - mid)
-        order = [("lo", can_lo), ("hi", can_hi)]
-        if not prefer_low:
-            order.reverse()
-        advanced = False
-        for side, can in order:
-            if not can:
-                continue
-            if side == "lo" and fits(lo - 1, hi):
-                lo -= 1
-                advanced = True
-                break
-            if side == "hi" and fits(lo, hi + 1):
-                hi += 1
-                advanced = True
-                break
-        if not advanced:
-            break
-
-    return window_lines(lo, hi), ordered_dates[lo], ordered_dates[hi]
+    lo, hi = bounds(best_r)
+    return kept, ordered_dates[lo], ordered_dates[hi], tok
 
 
 def main() -> int:
+    load_env()
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     name_by_path = {e["path"]: e["name"] for e in manifest if isinstance(e, dict)}
 
@@ -315,29 +377,33 @@ def main() -> int:
         full_tokens = content_tokens(name, rel_path, full_text)
 
         if date_col:
-            kept, start, end = _truncate_date_window(name, rel_path, header, data, date_col)
+            kept, start, end, anchor_tokens = _truncate_date_window(
+                name, rel_path, header, data, date_col
+            )
             strategy = "date-window" if start else "row-cap"
         else:
-            kept = _truncate_row_cap(name, rel_path, header, data)
+            kept, anchor_tokens = _truncate_row_cap(name, rel_path, header, data)
             strategy, start, end = "row-cap", None, None
 
         new_content = _content_from_lines(header, kept)
         abs_path.write_text(new_content, encoding="utf-8")
-        kept_tokens = content_tokens(name, rel_path, new_content)
+        kept_estimate = content_tokens(name, rel_path, new_content)
 
         truncation[rel_path] = {
             "strategy": strategy,
             "dateColumn": date_col if strategy == "date-window" else None,
             "timeFrame": ({"start": start, "end": end} if strategy == "date-window" else None),
             "budgetTokens": TOKEN_BUDGET,
+            "anchorModel": ANCHOR_MODEL,
             "keptRows": len(kept),
-            "keptEstimatedTokens": kept_tokens,
+            "keptAnchorTokens": anchor_tokens,
+            "keptEstimatedTokens": kept_estimate,
             "full": {"rows": full_rows, "sizeBytes": full_size, "estimatedTokens": full_tokens},
         }
         frame = f"{start} -> {end}" if start else f"first {len(kept):,} rows"
         print(
             f"Truncated {rel_path}: {full_rows:,} -> {len(kept):,} rows "
-            f"(~{kept_tokens:,} tok, {strategy}, {frame})"
+            f"({anchor_tokens:,} real / ~{kept_estimate:,} est tok, {strategy}, {frame})"
         )
 
     TRUNCATION_PATH.write_text(json.dumps(truncation, indent=2) + "\n", encoding="utf-8")

@@ -16,18 +16,18 @@
     "cost-activity": 8721,
     "speaker-activity": 10385,
     "website-activity": 6773,
-    "email-activity": 494818,
+    "email-activity": 194960,
     "sample-activity": 68942,
     "speaker-hcp-activity": 151203,
-    "paidsearch-activity": 497053,
-    "paidsocial-activity": 493074,
-    "digitalmedia-activity": 458142,
-    "claims-processing-activity": 490159,
-    "claims-status": 495940,
-    "dim-patient": 499988,
-    "hcp-prescribing-activity": 490455,
-    "hcp-specialty-zip": 499998,
-    "sales-rep-call-activity": 483385
+    "paidsearch-activity": 161951,
+    "paidsocial-activity": 136597,
+    "digitalmedia-activity": 89239,
+    "claims-processing-activity": 209785,
+    "claims-status": 195678,
+    "dim-patient": 203685,
+    "hcp-prescribing-activity": 200951,
+    "hcp-specialty-zip": 210534,
+    "sales-rep-call-activity": 195447
   },
   "byFilePath": {
     "hcp_specialty.csv": 347,
@@ -36,18 +36,18 @@
     "cost_activity.csv": 8721,
     "speaker_activity.csv": 10385,
     "website_activity.csv": 6773,
-    "email_activity.csv": 494818,
+    "email_activity.csv": 194960,
     "sample_activity.csv": 68942,
     "speaker_hcp_activity.csv": 151203,
-    "paidsearch_activity.csv": 497053,
-    "paidsocial_activity.csv": 493074,
-    "digitalmedia_activity.csv": 458142,
-    "claims_processing_activity.csv": 490159,
-    "claims_status.csv": 495940,
-    "dim_patient.csv": 499988,
-    "hcp_prescribing_activity.csv": 490455,
-    "hcp_specialty_zip.csv": 499998,
-    "sales_rep_call_activity.csv": 483385
+    "paidsearch_activity.csv": 161951,
+    "paidsocial_activity.csv": 136597,
+    "digitalmedia_activity.csv": 89239,
+    "claims_processing_activity.csv": 209785,
+    "claims_status.csv": 195678,
+    "dim_patient.csv": 203685,
+    "hcp_prescribing_activity.csv": 200951,
+    "hcp_specialty_zip.csv": 210534,
+    "sales_rep_call_activity.csv": 195447
   },
   "fileStats": {
     "hcp_specialty.csv": {
@@ -151,22 +151,31 @@
       }
     },
     "email_activity.csv": {
-      "estimatedTokens": 494818,
-      "rows": 12546,
+      "estimatedTokens": 194960,
+      "rows": 4726,
       "columns": 9,
-      "sizeBytes": 1979178,
+      "sizeBytes": 779749,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 470255,
+        "claude-sonnet-4-6": 397205,
+        "gpt-5.5": 354266,
+        "gpt-5.4-mini": 354266,
+        "gemini-3.1-flash-lite": 511427,
+        "gemini-3.1-pro-preview": 511427
+      },
+      "maxLibraryPromptTokens": 511427,
       "dateRange": {
         "column": "created_date",
-        "start": "2024-11-18",
-        "end": "2025-03-20"
+        "start": "2025-02-06",
+        "end": "2025-03-06"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "created_date",
         "timeFrame": {
-          "start": "2024-11-18",
-          "end": "2025-03-20"
+          "start": "2025-02-06",
+          "end": "2025-03-06"
         },
         "full": {
           "rows": 80158,
@@ -211,22 +220,31 @@
       "maxLibraryPromptTokens": 604727
     },
     "paidsearch_activity.csv": {
-      "estimatedTokens": 497053,
-      "rows": 18285,
+      "estimatedTokens": 161951,
+      "rows": 5972,
       "columns": 9,
-      "sizeBytes": 1988108,
+      "sizeBytes": 647702,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 476138,
+        "claude-sonnet-4-6": 407152,
+        "gpt-5.5": 345862,
+        "gpt-5.4-mini": 345862,
+        "gemini-3.1-flash-lite": 402708,
+        "gemini-3.1-pro-preview": 402708
+      },
+      "maxLibraryPromptTokens": 476138,
       "dateRange": {
         "column": "date",
-        "start": "2024-03-13",
-        "end": "2024-07-18"
+        "start": "2024-04-26",
+        "end": "2024-06-05"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "date",
         "timeFrame": {
-          "start": "2024-03-13",
-          "end": "2024-07-18"
+          "start": "2024-04-26",
+          "end": "2024-06-05"
         },
         "full": {
           "rows": 111264,
@@ -236,22 +254,31 @@
       }
     },
     "paidsocial_activity.csv": {
-      "estimatedTokens": 493074,
-      "rows": 5779,
+      "estimatedTokens": 136597,
+      "rows": 1601,
       "columns": 24,
-      "sizeBytes": 1972194,
+      "sizeBytes": 546283,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 466541,
+        "claude-sonnet-4-6": 398045,
+        "gpt-5.5": 311833,
+        "gpt-5.4-mini": 311833,
+        "gemini-3.1-flash-lite": 380385,
+        "gemini-3.1-pro-preview": 380385
+      },
+      "maxLibraryPromptTokens": 466541,
       "dateRange": {
         "column": "date",
-        "start": "2024-04-20",
-        "end": "2024-06-06"
+        "start": "2024-05-07",
+        "end": "2024-05-19"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "date",
         "timeFrame": {
-          "start": "2024-04-20",
-          "end": "2024-06-06"
+          "start": "2024-05-07",
+          "end": "2024-05-19"
         },
         "full": {
           "rows": 68010,
@@ -261,22 +288,31 @@
       }
     },
     "digitalmedia_activity.csv": {
-      "estimatedTokens": 458142,
-      "rows": 4567,
+      "estimatedTokens": 89239,
+      "rows": 906,
       "columns": 17,
-      "sizeBytes": 1832697,
+      "sizeBytes": 356886,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 204449,
+        "claude-sonnet-4-6": 160418,
+        "gpt-5.5": 134814,
+        "gpt-5.4-mini": 134814,
+        "gemini-3.1-flash-lite": 171233,
+        "gemini-3.1-pro-preview": 171233
+      },
+      "maxLibraryPromptTokens": 204449,
       "dateRange": {
         "column": "date",
-        "start": "2024-03-28",
-        "end": "2024-04-02"
+        "start": "2024-03-30",
+        "end": "2024-03-30"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "date",
         "timeFrame": {
-          "start": "2024-03-28",
-          "end": "2024-04-02"
+          "start": "2024-03-30",
+          "end": "2024-03-30"
         },
         "full": {
           "rows": 346962,
@@ -286,22 +322,31 @@
       }
     },
     "claims_processing_activity.csv": {
-      "estimatedTokens": 490159,
-      "rows": 38040,
+      "estimatedTokens": 209785,
+      "rows": 16268,
       "columns": 4,
-      "sizeBytes": 1960519,
+      "sizeBytes": 839024,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 447129,
+        "claude-sonnet-4-6": 375509,
+        "gpt-5.5": 341706,
+        "gpt-5.4-mini": 341706,
+        "gemini-3.1-flash-lite": 600570,
+        "gemini-3.1-pro-preview": 600570
+      },
+      "maxLibraryPromptTokens": 600570,
       "dateRange": {
         "column": "datetime_status",
-        "start": "2025-02-08",
-        "end": "2025-02-28"
+        "start": "2025-02-14",
+        "end": "2025-02-22"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "datetime_status",
         "timeFrame": {
-          "start": "2025-02-08",
-          "end": "2025-02-28"
+          "start": "2025-02-14",
+          "end": "2025-02-22"
         },
         "full": {
           "rows": 749176,
@@ -311,22 +356,31 @@
       }
     },
     "claims_status.csv": {
-      "estimatedTokens": 495940,
-      "rows": 18091,
+      "estimatedTokens": 195678,
+      "rows": 7138,
       "columns": 12,
-      "sizeBytes": 1983671,
+      "sizeBytes": 782622,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 462130,
+        "claude-sonnet-4-6": 417256,
+        "gpt-5.5": 386001,
+        "gpt-5.4-mini": 386001,
+        "gemini-3.1-flash-lite": 612885,
+        "gemini-3.1-pro-preview": 612885
+      },
+      "maxLibraryPromptTokens": 612885,
       "dateRange": {
         "column": "datetime_start",
-        "start": "2025-01-11",
-        "end": "2025-03-04"
+        "start": "2025-01-27",
+        "end": "2025-02-16"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "datetime_start",
         "timeFrame": {
-          "start": "2025-01-11",
-          "end": "2025-03-04"
+          "start": "2025-01-27",
+          "end": "2025-02-16"
         },
         "full": {
           "rows": 139137,
@@ -336,10 +390,19 @@
       }
     },
     "dim_patient.csv": {
-      "estimatedTokens": 499988,
-      "rows": 26959,
+      "estimatedTokens": 203685,
+      "rows": 10551,
       "columns": 13,
-      "sizeBytes": 1999861,
+      "sizeBytes": 814648,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 499982,
+        "claude-sonnet-4-6": 448267,
+        "gpt-5.5": 412035,
+        "gpt-5.4-mini": 412035,
+        "gemini-3.1-flash-lite": 552271,
+        "gemini-3.1-pro-preview": 552271
+      },
+      "maxLibraryPromptTokens": 552271,
       "truncation": {
         "strategy": "row-cap",
         "budgetTokens": 500000,
@@ -353,22 +416,31 @@
       }
     },
     "hcp_prescribing_activity.csv": {
-      "estimatedTokens": 490455,
-      "rows": 22807,
+      "estimatedTokens": 200951,
+      "rows": 9352,
       "columns": 11,
-      "sizeBytes": 1961709,
+      "sizeBytes": 803693,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 485069,
+        "claude-sonnet-4-6": 417133,
+        "gpt-5.5": 392655,
+        "gpt-5.4-mini": 392655,
+        "gemini-3.1-flash-lite": 573050,
+        "gemini-3.1-pro-preview": 573050
+      },
+      "maxLibraryPromptTokens": 573050,
       "dateRange": {
         "column": "date_submitted",
-        "start": "2025-02-26",
-        "end": "2025-03-19"
+        "start": "2025-03-05",
+        "end": "2025-03-13"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "date_submitted",
         "timeFrame": {
-          "start": "2025-02-26",
-          "end": "2025-03-19"
+          "start": "2025-03-05",
+          "end": "2025-03-13"
         },
         "full": {
           "rows": 388830,
@@ -378,10 +450,19 @@
       }
     },
     "hcp_specialty_zip.csv": {
-      "estimatedTokens": 499998,
-      "rows": 51473,
+      "estimatedTokens": 210534,
+      "rows": 21676,
       "columns": 7,
-      "sizeBytes": 1999889,
+      "sizeBytes": 842034,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 499983,
+        "claude-sonnet-4-6": 470550,
+        "gpt-5.5": 430626,
+        "gpt-5.4-mini": 430626,
+        "gemini-3.1-flash-lite": 799121,
+        "gemini-3.1-pro-preview": 799121
+      },
+      "maxLibraryPromptTokens": 799121,
       "truncation": {
         "strategy": "row-cap",
         "budgetTokens": 500000,
@@ -395,22 +476,31 @@
       }
     },
     "sales_rep_call_activity.csv": {
-      "estimatedTokens": 483385,
-      "rows": 9402,
+      "estimatedTokens": 195447,
+      "rows": 3808,
       "columns": 17,
-      "sizeBytes": 1933433,
+      "sizeBytes": 781681,
+      "libraryPromptTokensByModel": {
+        "claude-opus-4-7": 472881,
+        "claude-sonnet-4-6": 369075,
+        "gpt-5.5": 311947,
+        "gpt-5.4-mini": 311947,
+        "gemini-3.1-flash-lite": 410674,
+        "gemini-3.1-pro-preview": 410674
+      },
+      "maxLibraryPromptTokens": 472881,
       "dateRange": {
         "column": "call_date",
-        "start": "2024-08-16",
-        "end": "2024-09-15"
+        "start": "2024-08-24",
+        "end": "2024-09-06"
       },
       "truncation": {
         "strategy": "date-window",
         "budgetTokens": 500000,
         "dateColumn": "call_date",
         "timeFrame": {
-          "start": "2024-08-16",
-          "end": "2024-09-15"
+          "start": "2024-08-24",
+          "end": "2024-09-06"
         },
         "full": {
           "rows": 141019,
