@@ -208,6 +208,27 @@ export function ChatLibraryPanel({ modelId }: ChatLibraryPanelProps) {
                           <p>{stats.rows.toLocaleString()} rows</p>
                           <p>{stats.columns} columns</p>
                           <p>{formatFileSize(stats.sizeBytes)}</p>
+                          {stats.truncation ? (
+                            <>
+                              <p className="font-medium text-amber-700 dark:text-amber-500">
+                                Force-truncated to fit ~
+                                {Math.round(stats.truncation.budgetTokens / 1000)}k tokens
+                              </p>
+                              <p className="text-amber-700 dark:text-amber-500">
+                                {stats.truncation.timeFrame
+                                  ? `Time frame: ${stats.truncation.timeFrame.start} → ${stats.truncation.timeFrame.end}`
+                                  : "Kept leading rows (no date column)"}
+                              </p>
+                              <p>
+                                from {stats.truncation.full.rows.toLocaleString()} rows ·{" "}
+                                {formatFileSize(stats.truncation.full.sizeBytes)}
+                              </p>
+                            </>
+                          ) : stats.dateRange ? (
+                            <p>
+                              Dates: {stats.dateRange.start} → {stats.dateRange.end}
+                            </p>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>

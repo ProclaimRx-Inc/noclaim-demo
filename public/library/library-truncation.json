@@ -1,0 +1,156 @@
+{
+  "paidsearch_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "date",
+    "timeFrame": {
+      "start": "2024-03-13",
+      "end": "2024-07-18"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 18285,
+    "keptEstimatedTokens": 497053,
+    "full": {
+      "rows": 111264,
+      "sizeBytes": 11745913,
+      "estimatedTokens": 2936504
+    }
+  },
+  "paidsocial_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "date",
+    "timeFrame": {
+      "start": "2024-04-20",
+      "end": "2024-06-06"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 5779,
+    "keptEstimatedTokens": 493074,
+    "full": {
+      "rows": 68010,
+      "sizeBytes": 23340931,
+      "estimatedTokens": 5835259
+    }
+  },
+  "email_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "created_date",
+    "timeFrame": {
+      "start": "2024-11-18",
+      "end": "2025-03-20"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 12546,
+    "keptEstimatedTokens": 494818,
+    "full": {
+      "rows": 80158,
+      "sizeBytes": 13100036,
+      "estimatedTokens": 3275032
+    }
+  },
+  "digitalmedia_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "date",
+    "timeFrame": {
+      "start": "2024-03-28",
+      "end": "2024-04-02"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 4567,
+    "keptEstimatedTokens": 458142,
+    "full": {
+      "rows": 346962,
+      "sizeBytes": 146069441,
+      "estimatedTokens": 36512961
+    }
+  },
+  "claims_processing_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "datetime_status",
+    "timeFrame": {
+      "start": "2025-02-08",
+      "end": "2025-02-28"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 38040,
+    "keptEstimatedTokens": 490159,
+    "full": {
+      "rows": 749176,
+      "sizeBytes": 38625060,
+      "estimatedTokens": 9656294
+    }
+  },
+  "claims_status.csv": {
+    "strategy": "date-window",
+    "dateColumn": "datetime_start",
+    "timeFrame": {
+      "start": "2025-01-11",
+      "end": "2025-03-04"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 18091,
+    "keptEstimatedTokens": 495940,
+    "full": {
+      "rows": 139137,
+      "sizeBytes": 15239952,
+      "estimatedTokens": 3810011
+    }
+  },
+  "dim_patient.csv": {
+    "strategy": "row-cap",
+    "dateColumn": null,
+    "timeFrame": null,
+    "budgetTokens": 500000,
+    "keptRows": 26959,
+    "keptEstimatedTokens": 499988,
+    "full": {
+      "rows": 294917,
+      "sizeBytes": 21622757,
+      "estimatedTokens": 5405712
+    }
+  },
+  "hcp_prescribing_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "date_submitted",
+    "timeFrame": {
+      "start": "2025-02-26",
+      "end": "2025-03-19"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 22807,
+    "keptEstimatedTokens": 490455,
+    "full": {
+      "rows": 388830,
+      "sizeBytes": 33354377,
+      "estimatedTokens": 8338622
+    }
+  },
+  "sales_rep_call_activity.csv": {
+    "strategy": "date-window",
+    "dateColumn": "call_date",
+    "timeFrame": {
+      "start": "2024-08-16",
+      "end": "2024-09-15"
+    },
+    "budgetTokens": 500000,
+    "keptRows": 9402,
+    "keptEstimatedTokens": 483385,
+    "full": {
+      "rows": 141019,
+      "sizeBytes": 28883497,
+      "estimatedTokens": 7220900
+    }
+  },
+  "hcp_specialty_zip.csv": {
+    "strategy": "row-cap",
+    "dateColumn": null,
+    "timeFrame": null,
+    "budgetTokens": 500000,
+    "keptRows": 51473,
+    "keptEstimatedTokens": 499998,
+    "full": {
+      "rows": 491109,
+      "sizeBytes": 19078784,
+      "estimatedTokens": 4769721
+    }
+  }
+}

@@ -2,9 +2,12 @@
 /**
  * Precompute approximate token counts and CSV shape / file size for each library file.
  * Token count matches the plaintext shape used by the chat API.
- * Files over ~1M estimated tokens are truncated on disk to the header plus 100 data rows;
- * display stats stay frozen in library-full-file-stats.json so library-token-meta.json
- * still reflects the original full file.
+ * Also records each CSV's detected date range (dateRange) so the UI can show the time
+ * frame for every file, and merges per-file force-truncation metadata from
+ * library-truncation.json (written by scripts/force_truncate_library.py) so the UI can
+ * show "truncated to <time frame> to fit ~500k tokens".
+ * Legacy fallback: files over ~1M estimated tokens with no truncation entry are cut to
+ * the header plus 100 data rows, with display stats frozen in library-full-file-stats.json.
  * Writes public/library/library-token-meta.json. Run via package.json prebuild.
  */
 const fs = require("fs")
@@ -12,6 +15,7 @@ const path = require("path")
 
 const libDir = path.join(path.resolve(__dirname, ".."), "public", "library")
 const OVERRIDES_PATH = path.join(libDir, "library-full-file-stats.json")
+const TRUNCATION_PATH = path.join(libDir, "library-truncation.json")
 /** Same threshold as lib/library-file-token-policy.ts */
 const TOKEN_TRUNCATE_THRESHOLD = 1_000_000
 const MAX_CSV_DATA_ROWS = 100
@@ -88,6 +92,87 @@ function countCsvColumns(line) {
   return cols + 1
 }
 
+/** RFC-style split of a single CSV line into field strings. */
+function parseCsvLine(line) {
+  const out = []
+  let field = ""
+  let i = 0
+  let inQuotes = false
+  while (i < line.length) {
+    const c = line[i]
+    if (inQuotes) {
+      if (c === '"' && line[i + 1] === '"') {
+        field += '"'
+        i += 2
+        continue
+      }
+      if (c === '"') {
+        inQuotes = false
+        i++
+        continue
+      }
+      field += c
+      i++
+      continue
+    }
+    if (c === '"') {
+      inQuotes = true
+      i++
+      continue
+    }
+    if (c === ",") {
+      out.push(field)
+      field = ""
+      i++
+      continue
+    }
+    field += c
+    i++
+  }
+  out.push(field)
+  return out
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}/
+
+/**
+ * Detect the primary date column and its min/max range for a CSV.
+ * Picks the first header column whose name looks date-ish and whose values parse
+ * as YYYY-MM-DD. Returns { column, start, end } or null. ISO dates sort lexically.
+ */
+function detectDateRange(content) {
+  const lines = content.split(/\r?\n/).filter((l) => l.length > 0)
+  if (lines.length < 2) return null
+  const header = parseCsvLine(lines[0])
+  const candidates = header
+    .map((name, idx) => ({ name, idx }))
+    .filter((c) => /date|datetime/i.test(c.name))
+  for (const cand of candidates) {
+    let min = null
+    let max = null
+    for (let r = 1; r < lines.length; r++) {
+      const fields = parseCsvLine(lines[r])
+      const v = (fields[cand.idx] || "").trim()
+      if (!ISO_DATE.test(v)) continue
+      const d = v.slice(0, 10)
+      if (min === null || d < min) min = d
+      if (max === null || d > max) max = d
+    }
+    if (min !== null) return { column: cand.name, start: min, end: max }
+  }
+  return null
+}
+
+function loadTruncation() {
+  if (!fs.existsSync(TRUNCATION_PATH)) return {}
+  try {
+    const j = JSON.parse(fs.readFileSync(TRUNCATION_PATH, "utf8"))
+    return typeof j === "object" && j !== null && !Array.isArray(j) ? j : {}
+  } catch {
+    return {}
+  }
+}
+
 function csvRowsAndColumns(content) {
   const lines = content.split(/\r?\n/).filter((l) => l.length > 0)
   if (lines.length === 0) return { rows: 0, columns: 0 }
@@ -124,6 +209,7 @@ function main() {
     if (!manifestPaths.has(k)) delete overrides[k]
   }
   const overridesAfterPrune = JSON.stringify(overrides)
+  const truncation = loadTruncation()
 
   let metaExisting = null
   const metaPath = path.join(libDir, "library-token-meta.json")
@@ -184,6 +270,8 @@ function main() {
     byManifestId[e.id] = fullStats.estimatedTokens
     byFilePath[e.path] = fullStats.estimatedTokens
     const existing = metaExisting?.fileStats?.[e.path]
+    const dateRange = e.path.toLowerCase().endsWith(".csv") ? detectDateRange(content) : null
+    const trunc = truncation[e.path]
     fileStats[e.path] = {
       ...fullStats,
       ...(existing?.libraryPromptTokensByModel
@@ -191,6 +279,18 @@ function main() {
         : {}),
       ...(typeof existing?.maxLibraryPromptTokens === "number"
         ? { maxLibraryPromptTokens: existing.maxLibraryPromptTokens }
+        : {}),
+      ...(dateRange ? { dateRange } : {}),
+      ...(trunc
+        ? {
+            truncation: {
+              strategy: trunc.strategy,
+              budgetTokens: trunc.budgetTokens,
+              dateColumn: trunc.dateColumn ?? null,
+              timeFrame: trunc.timeFrame ?? null,
+              full: trunc.full,
+            },
+          }
         : {}),
     }
   }
